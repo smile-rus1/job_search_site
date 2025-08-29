@@ -21,6 +21,8 @@ def bind_services(app: FastAPI):
     app.dependency_overrides[abstract.services.auth_service_provider] = services.auth_service_getter
     app.dependency_overrides[abstract.services.user_service_provider] = services.user_service
 
+    app.dependency_overrides[abstract.services.applicant_service_provider] = services.applicant_service
+    app.dependency_overrides[abstract.services.company_service_provider] = services.company_service
 
 
 def bind_providers(app: FastAPI, config: Config):

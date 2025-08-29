@@ -3,47 +3,97 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.api.providers.auth import CurrentUser
+from src.api.handlers.user.response.auth import Token
+from src.api.handlers.user.response.user import UserOut
+
 from src.core import security
 
-from src.api.handlers.user.requests.auth import CreateUserRequest, UserOut, Token
-from src.api.providers.abstract.services import user_service_provider, auth_service_provider
+from src.api.handlers.user.requests.auth import CreateApplicantRequest, CreateCompanyRequest
+from src.api.providers.abstract import services
+from src.dto.services.applicant.applicant import CreateApplicantDTO
+from src.dto.services.company.company import CreateCompanyDTO
 from src.dto.services.user.auth import AuthUserDTO
 from src.dto.services.user.user import CreateUserDTO
+from src.services.applicant.applicant import ApplicantService
+from src.services.company.company import CompanyService
 from src.services.user.auth import AuthService
-from src.services.user.user import UserService
 
 
-auth_router = APIRouter(tags=["Auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @auth_router.post(
-    "/register",
+    "/register/applicant",
     status_code=status.HTTP_201_CREATED,
+    response_model=UserOut,
     responses={
         200: {"description": "Registered"},
         409: {"description": "User already exist"},
         500: {"description": "Internal Server Error"}
     }
 )
-async def register_user(  # тут сделать, чтобы регистрация была для applicant и company
-        user_data: CreateUserRequest,
-        user_service: UserService = Depends(user_service_provider)
+async def register_applicant(
+        applicant_data: CreateApplicantRequest,
+        applicant_service: ApplicantService = Depends(services.applicant_service_provider)
 ):
-    user_dto = CreateUserDTO(
-        first_name=user_data.first_name,
-        last_name=user_data.last_name,
-        email=user_data.email,
-        password=user_data.password,
-        phone_number=user_data.phone_number,
-        image_url=user_data.image_url
+    applicant_dto = CreateApplicantDTO(
+        user=CreateUserDTO(
+            email=applicant_data.user.email,
+            password=applicant_data.user.password,
+            last_name=applicant_data.user.last_name,
+            first_name=applicant_data.user.first_name,
+            image_url=applicant_data.user.image_url,  # тут нужно будет передавать не image_url а саму картинку
+            phone_number=applicant_data.user.phone_number
+        ),
+        description_applicant=applicant_data.description_applicant,
+        address=applicant_data.address,
+        level_education=applicant_data.level_education,
+        gender=applicant_data.gender
     )
-    user = await user_service.create_user(user_dto)
+    applicant_out = await applicant_service.create_applicant(applicant_dto)
+
     return UserOut(
-        user_id=user.user_id,
-        last_name=user.last_name,
-        first_name=user.first_name,
-        email=user.email
+        user_id=applicant_out.user.user_id,
+        last_name=applicant_out.user.last_name,
+        first_name=applicant_out.user.first_name,
+        email=applicant_out.user.email
+    )
+
+
+@auth_router.post(
+    "/register/company",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserOut,
+    responses={
+        200: {"description": "Registered"},
+        409: {"description": "User already exist"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+async def register_company(
+        company_data: CreateCompanyRequest,
+        company_service: CompanyService = Depends(services.company_service_provider)
+):
+    company_dto = CreateCompanyDTO(
+        user=CreateUserDTO(
+            email=company_data.user.email,
+            password=company_data.user.password,
+            last_name=company_data.user.last_name,
+            first_name=company_data.user.first_name,
+            image_url=company_data.user.image_url,  # тут нужно будет передавать не image_url а саму картинку
+            phone_number=company_data.user.phone_number
+        ),
+        company_name=company_data.company_name,
+        description_company=company_data.description_company,
+        address=company_data.address
+    )
+    company_out = await company_service.create_company(company_dto)
+
+    return UserOut(
+        user_id=company_out.user.user_id,
+        last_name=company_out.user.last_name,
+        first_name=company_out.user.first_name,
+        email=company_out.user.email
     )
 
 
@@ -58,8 +108,12 @@ async def register_user(  # тут сделать, чтобы регистрац
 )
 async def login_user(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        auth_service: AuthService = Depends(auth_service_provider)
+        auth_service: AuthService = Depends(services.auth_service_provider)
 ):
+    """
+    Authorize user in system
+    """
+
     auth_dto = AuthUserDTO(email=form_data.username, password=form_data.password)
     user = await auth_service.authenticate_user(auth_dto)
 
@@ -67,7 +121,9 @@ async def login_user(
         "user_id": user.user_id,
         "email": user.email,
         "first_name": user.first_name,
-        "last_name": user.last_name
+        "last_name": user.last_name,
+        "is_admin": user.is_admin,
+        "is_superuser": user.is_superuser
     }
     access_token = security.create_access_token(data_dct)
 

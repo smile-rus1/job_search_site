@@ -22,3 +22,11 @@ class UserDB(Base):
     phone_number: Mapped[str] = mapped_column(String(20), nullable=False)
     image_url: Mapped[str] = mapped_column(String(255), nullable=True)
 
+    type: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    # для того чтобы понимать тип наследника
+    __mapper_args__ = {
+        "polymorphic_identity": "user",
+        "polymorphic_on": type,
+        "with_polymorphic": "*"
+    }

@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from src.infrastructure.enums import GenderEnum, EducationEnum
+
 
 class CreateUserRequest(BaseModel):
     first_name: str
@@ -10,13 +12,16 @@ class CreateUserRequest(BaseModel):
     image_url: str | None = None
 
 
-class UserOut(BaseModel):
-    user_id: int
-    first_name: str
-    last_name: str
-    email: str
+class CreateApplicantRequest(BaseModel):
+    user: CreateUserRequest
+    gender: GenderEnum
+    description_applicant: str | None = None
+    address: str | None = None
+    level_education: EducationEnum | None = None
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+class CreateCompanyRequest(BaseModel):
+    user: CreateUserRequest
+    company_name: str
+    description_company: str | None
+    address: str | None

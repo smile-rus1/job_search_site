@@ -7,5 +7,7 @@ from src.infrastructure.db import dao
 def build_tm(session: AsyncSession) -> TransactionManager:
     return TransactionManager(
         session=session,
-        user_dao=dao.UserDAO
+        user_dao=dao.UserDAO,
+        applicant_dao=dao.ApplicantDAO,
+        company_dao=dao.CompanyDAO,
     )

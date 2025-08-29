@@ -2,9 +2,9 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.infustructure.user.user import CreateUserDTODAO
+from src.dto.db.user.user import CreateUserDTODAO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
-from src.dto.services.user.user import CreateUserDTO, OutUserDTO, UserDTO
+from src.dto.services.user.user import CreateUserDTO, UserOutDTO, UserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.exceptions.services.auth import InvalidEmail
 from src.infrastructure.db.transaction_manager import TransactionManager
@@ -15,34 +15,6 @@ class UserUseCase(ABC):
     def __init__(self, tm: TransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
-
-
-class CreateUser(UserUseCase):
-    async def __call__(self, user_dto: CreateUserDTO) -> OutUserDTO:
-        hashed_password = self._hasher.hash(user_dto.password)
-        user = CreateUserDTODAO(
-            email=user_dto.email,
-            password=hashed_password,
-            first_name=user_dto.first_name,
-            last_name=user_dto.last_name,
-            phone_number=user_dto.phone_number,
-            image_url=user_dto.image_url
-        )
-        try:
-            user_out = await self._tm.user_dao.create(user)
-            await self._tm.commit()
-
-        except UserAlreadyExist:
-            logger.error(f"USER ALREADY EXISTS WITH THIS EMAIL {user_dto.email}")
-            await self._tm.rollback()
-            raise UserAlreadyExist(email=user_dto.email)
-
-        return OutUserDTO(
-            user_id=user_out.user_id,
-            first_name=user_out.first_name,
-            last_name=user_out.last_name,
-            email=user_out.email
-        )
 
 
 class GetUserByEmail(UserUseCase):
@@ -69,7 +41,7 @@ class UserService:
         self._tm = tm
         self._hasher = hasher
 
-    async def create_user(self, user_dto) -> OutUserDTO:
+    async def create_user(self, user_dto) -> UserOutDTO:
         return await CreateUser(self._tm, self._hasher)(user_dto)
 
     async def get_user_by_email(self, email: str) -> UserDTO:

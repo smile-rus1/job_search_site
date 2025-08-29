@@ -34,7 +34,7 @@ class CreateUserDTODAO(UserDTODAO):
 
 
 @dataclass
-class OutUserDTODAO(BaseDTO):
+class UserOutDTODAO(BaseDTO):
     user_id: int
     first_name: str
     last_name: str

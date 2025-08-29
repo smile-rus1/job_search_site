@@ -2,7 +2,7 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.services.user.auth import AuthUserDTO
+from src.dto.services.user.auth import AuthUserDTO, AuthUserOutDTO
 from src.dto.services.user.user import UserDTO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
@@ -17,7 +17,7 @@ class AuthUseCase(ABC):
 
 
 class AuthenticateUser(AuthUseCase):
-    async def __call__(self, auth_dto: AuthUserDTO) -> UserDTO:
+    async def __call__(self, auth_dto: AuthUserDTO) -> AuthUserOutDTO:
         try:
             user = await self._tm.user_dao.get_user_by_email(auth_dto.email)
 
@@ -29,13 +29,13 @@ class AuthenticateUser(AuthUseCase):
             logger.error(f"INCORRECT PASSWORD ON USER {auth_dto.email}")
             raise InvalidPassword()
 
-        return UserDTO(
+        return AuthUserOutDTO(
             user_id=user.user_id,
             first_name=user.first_name,
             last_name=user.last_name,
             email=user.email,
-            updated_at=user.updated_at,
-            created_at=None
+            is_superuser=user.is_superuser,
+            is_admin=user.is_admin
         )
 
 
@@ -44,5 +44,5 @@ class AuthService:
         self._tm = tm
         self._hasher = hasher
 
-    async def authenticate_user(self, auth_dto: AuthUserDTO) -> UserDTO:
+    async def authenticate_user(self, auth_dto: AuthUserDTO) -> AuthUserOutDTO:
         return await AuthenticateUser(self._tm, self._hasher)(auth_dto)
