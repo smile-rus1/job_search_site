@@ -18,3 +18,8 @@ class InvalidEmail(AuthException):
 class InvalidPassword(AuthException):
     def message(self):
         return f"Wrong password"
+
+
+class RefreshTokenNotValid(AuthException):
+    def message(self):
+        return f"Refresh token is not valid"

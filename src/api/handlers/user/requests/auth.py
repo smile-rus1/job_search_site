@@ -12,6 +12,11 @@ class CreateUserRequest(BaseModel):
     image_url: str | None = None
 
 
+class AuthDataRequest(BaseModel):
+    email: str
+    password: str
+
+
 class CreateApplicantRequest(BaseModel):
     user: CreateUserRequest
     gender: GenderEnum

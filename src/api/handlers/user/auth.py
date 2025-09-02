@@ -1,15 +1,10 @@
-from typing import Annotated
+from fastapi import APIRouter, Depends, status, HTTPException
 
-from fastapi import APIRouter, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
-
-from src.api.handlers.user.response.auth import Token
-from src.api.handlers.user.response.user import UserOut
-
-from src.core import security
-
-from src.api.handlers.user.requests.auth import CreateApplicantRequest, CreateCompanyRequest
+from src.api.handlers.user.requests.auth import CreateApplicantRequest, CreateCompanyRequest, AuthDataRequest
+from src.api.permissions import login_required
 from src.api.providers.abstract import services
+from src.api.handlers.user.response.user import UserOut
+from src.api.providers.auth import TokenAuthDep
 from src.dto.services.applicant.applicant import CreateApplicantDTO
 from src.dto.services.company.company import CreateCompanyDTO
 from src.dto.services.user.auth import AuthUserDTO
@@ -98,8 +93,7 @@ async def register_company(
 
 
 @auth_router.post(
-    "/login/access-token",
-    response_model=Token,
+    "/login",
     status_code=status.HTTP_200_OK,
     responses={
         401: {"description": "Not registered"},
@@ -107,32 +101,39 @@ async def register_company(
     }
 )
 async def login_user(
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        auth_service: AuthService = Depends(services.auth_service_provider)
+        auth_data: AuthDataRequest,
+        auth: TokenAuthDep,
+        auth_service: AuthService = Depends(services.auth_service_provider),
 ):
     """
     Authorize user in system
     """
 
-    auth_dto = AuthUserDTO(email=form_data.username, password=form_data.password)
-    user = await auth_service.authenticate_user(auth_dto)
+    auth_dto = AuthUserDTO(email=auth_data.email, password=auth_data.password)
+    await auth_service.authenticate_user(auth_dto, auth)
 
-    data_dct = {
-        "user_id": user.user_id,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "is_admin": user.is_admin,
-        "is_superuser": user.is_superuser
-    }
-    access_token = security.create_access_token(data_dct)
-
-    # мб тут сделать ещё с рефреш-токеном!
-    return Token(
-        access_token=access_token
-    )
+    return {"detail": "Tokens set"}
 
 
-# @auth_router.get("/prosto")
-# async def prosto(user: CurrentUser):
-#     return {"msg": "SECURITY"}
+@auth_router.post(
+    "/logout",
+    status_code=status.HTTP_200_OK
+)
+async def logout(auth: TokenAuthDep):
+    await auth.unset_tokens()
+    return {"detail": "Tokens deleted"}
+
+
+@auth_router.post(
+    "/refresh",
+    status_code=status.HTTP_200_OK
+)
+async def refresh_access_token(auth: TokenAuthDep):
+    await auth.refresh_access_token()
+    return {"detail": "Access token has been refresh"}
+
+
+@auth_router.get("/prosto")
+@login_required
+async def prosto(auth: TokenAuthDep):
+    return auth.request.state.user

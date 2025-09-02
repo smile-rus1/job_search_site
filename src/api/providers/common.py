@@ -3,9 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.providers.abstract.common import session_provider
 from src.core.config import Config
+from src.infrastructure.auth.jwt import JWTAuth
 from src.infrastructure.connections import get_db_connection
 from src.infrastructure.db.build_transaction_manager import build_tm
 from src.infrastructure.hasher import Hasher
+from src.interfaces.services.auth import IJWTAuth
 
 
 def db_session(config: Config):

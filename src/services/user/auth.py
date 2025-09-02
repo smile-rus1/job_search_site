@@ -8,6 +8,7 @@ from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
 from src.infrastructure.db.transaction_manager import TransactionManager
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.services.auth import IJWTAuth
 
 
 class AuthUseCase(ABC):
@@ -17,7 +18,7 @@ class AuthUseCase(ABC):
 
 
 class AuthenticateUser(AuthUseCase):
-    async def __call__(self, auth_dto: AuthUserDTO) -> AuthUserOutDTO:
+    async def __call__(self, auth_dto: AuthUserDTO, auth: IJWTAuth) -> AuthUserOutDTO:
         try:
             user = await self._tm.user_dao.get_user_by_email(auth_dto.email)
 
@@ -28,6 +29,17 @@ class AuthenticateUser(AuthUseCase):
         if not self._hasher.verify(auth_dto.password, user.password):
             logger.error(f"INCORRECT PASSWORD ON USER {auth_dto.email}")
             raise InvalidPassword()
+
+        data_dct = {
+            "user_id": user.user_id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "is_admin": user.is_admin,
+            "is_superuser": user.is_superuser
+        }
+
+        await auth.set_tokens(data_dct)
 
         return AuthUserOutDTO(
             user_id=user.user_id,
@@ -44,5 +56,5 @@ class AuthService:
         self._tm = tm
         self._hasher = hasher
 
-    async def authenticate_user(self, auth_dto: AuthUserDTO) -> AuthUserOutDTO:
-        return await AuthenticateUser(self._tm, self._hasher)(auth_dto)
+    async def authenticate_user(self, auth_dto: AuthUserDTO, auth: IJWTAuth) -> AuthUserOutDTO:
+        return await AuthenticateUser(self._tm, self._hasher)(auth_dto, auth)

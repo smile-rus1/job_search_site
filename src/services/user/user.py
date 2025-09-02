@@ -36,13 +36,12 @@ class GetUserByEmail(UserUseCase):
         )
 
 
+# добавить изменения пароля
+
 class UserService:
     def __init__(self, tm: TransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
-
-    async def create_user(self, user_dto) -> UserOutDTO:
-        return await CreateUser(self._tm, self._hasher)(user_dto)
 
     async def get_user_by_email(self, email: str) -> UserDTO:
         return await GetUserByEmail(self._tm, self._hasher)(email)
