@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
 from src.dto.base_dto import BaseDTO
-from src.dto.services.user.user import CreateUserDTO, UserOutDTO
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.dto.services.user.user import CreateUserDTO, UserOutDTO, BaseUserDTO
 
 
 @dataclass
@@ -11,7 +10,7 @@ class BaseCompanyDTO(BaseDTO):
 
 
 @dataclass
-class ApplicantDTO(BaseCompanyDTO):
+class CompanyDTO(BaseCompanyDTO):
     user_id: int
 
 
@@ -24,6 +23,39 @@ class CreateCompanyDTO(BaseDTO):
 
 
 @dataclass
+class UpdateCompanyDTO(BaseDTO):
+    user_id: int
+    email: str
+    company_name: str | None = None
+    description_company: str | None = None
+    address: str | None = None
+
+
+@dataclass
 class CompanyOutDTO(BaseDTO):
     user: UserOutDTO
     type: str = "company"
+
+
+@dataclass
+class CompanyDTO(BaseDTO):
+    company_id: int
+    user: BaseUserDTO
+    company_name: str
+    address: str | None
+    description_company: str | None
+
+
+@dataclass
+class SearchDTO(BaseDTO):
+    company_name: str | None
+    offset: int = 0
+    limit: int = 0
+
+
+@dataclass
+class CompanyDataDTO(BaseDTO):
+    company_id: int
+    company_name: str
+    description_company: str | None
+    address: str | None

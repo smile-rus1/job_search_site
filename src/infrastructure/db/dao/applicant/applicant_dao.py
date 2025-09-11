@@ -1,10 +1,16 @@
-from sqlalchemy import insert
+from sqlalchemy import insert, update, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import aliased
 
-from src.dto.db.applicant.applicant import ApplicantOutDTODAO, CreateApplicantDTODAO
-from src.dto.db.user.user import UserOutDTODAO
+from src.dto.db.applicant.applicant import (
+    ApplicantOutDTODAO,
+    CreateApplicantDTODAO,
+    UpdateApplicantDTODAO,
+    BaseApplicantDTODAO, ApplicantDTODAO
+)
+from src.dto.db.user.user import UserOutDTODAO, BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
-from src.exceptions.infrascructure.user.user import UserAlreadyExist
+from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
 from src.infrastructure.db.dao.base_dao import BaseDAO
 from src.infrastructure.db.models import ApplicantDB, UserDB
 
@@ -61,8 +67,72 @@ class ApplicantDAO(BaseDAO):
             )
         )
 
+    async def update_applicant(self, applicant: UpdateApplicantDTODAO) -> None:
+        data_dict = applicant.__dict__
+
+        update_values = {
+            k: v for k, v in data_dict.items()
+            if v is not None and k != "user_id" and k != "email"
+        }
+        sql = (
+            update(ApplicantDB)
+            .where(
+                ApplicantDB.applicant_id == UserDB.user_id,
+                UserDB.email == applicant.email,
+                ApplicantDB.applicant_id == applicant.user_id
+            )
+            .values(**update_values)
+        )
+
+        try:
+            await self._session.execute(sql)
+        except IntegrityError as exc:
+            raise self._error_parser(applicant, exc)
+
+    async def get_applicant_by_id(self, user_id: int) -> ApplicantDTODAO:
+        applicant_aliased = aliased(ApplicantDB, flat=True)
+        sql = (
+            select(
+                applicant_aliased.applicant_id,
+                applicant_aliased.description_applicant,
+                applicant_aliased.address,
+                applicant_aliased.level_education,
+                applicant_aliased.is_confirmed,
+                applicant_aliased.gender,
+                UserDB.email,
+                UserDB.first_name,
+                UserDB.last_name,
+                UserDB.phone_number,
+            )
+            .join(UserDB, ApplicantDB.applicant_id == UserDB.user_id)
+            .where(ApplicantDB.applicant_id == user_id)
+        )
+        result = await self._session.execute(sql)
+        model = result.first()
+
+        if model is None:
+            raise UserNotFoundByID(user_id)
+# ☺
+        return ApplicantDTODAO(
+            user=BaseUserDTODAO(
+                last_name=model.last_name,
+                first_name=model.last_name,
+                phone_number=model.phone_number,
+                email=model.email
+            ),
+            applicant_id=model.applicant_id,
+            description_applicant=model.description_applicant,
+            address=model.address,
+            level_education=model.level_education,
+            gender=model.gender,
+            is_confirmed=model.is_confirmed,
+        )
+
     @staticmethod
-    def _error_parser(applicant: CreateApplicantDTODAO, exc: IntegrityError) -> BaseExceptions:
+    def _error_parser(
+            applicant: CreateApplicantDTODAO | UpdateApplicantDTODAO | BaseApplicantDTODAO,
+            exc: IntegrityError
+    ) -> BaseExceptions:
         database_column = exc.__cause__.__cause__.constraint_name
         if database_column == "users_email_key":
             return UserAlreadyExist(applicant.user.email)

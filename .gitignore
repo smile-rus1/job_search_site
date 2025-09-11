@@ -5,5 +5,4 @@ alembic.ini
 **/__pycache__/
 **/.pytest_cache
 src/infrastructure/db/migrations/versions
-src/core/logs/log.txt
-src/core/logs/**
+src/core/logs/

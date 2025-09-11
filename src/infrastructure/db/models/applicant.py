@@ -10,7 +10,7 @@ class ApplicantDB(UserDB):
 
     applicant_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.user_id"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         primary_key=True
     )
     description_applicant: Mapped[str] = mapped_column(Text(), nullable=True)

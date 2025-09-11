@@ -1,7 +1,7 @@
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError
 
-from src.dto.db.user.user import CreateUserDTODAO, UserOutDTODAO, UserDTODAO, BaseUserDTODAO
+from src.dto.db.user.user import CreateUserDTODAO, UserOutDTODAO, BaseUserDTODAO, UpdateUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail
 from src.infrastructure.db.dao.base_dao import BaseDAO
@@ -52,8 +52,33 @@ class UserDAO(BaseDAO):
             is_superuser=result.is_superuser
         )
 
+    async def update_user(self, user: UpdateUserDTODAO) -> None:
+        data_dict = user.__dict__
+
+        update_values = {
+            k: v for k, v in data_dict.items()
+            if v is not None and k != "user_id" and k != "email"
+        }
+        sql = (
+            update(UserDB)
+            .where(
+                UserDB.user_id == user.user_id,
+                UserDB.email == user.email
+            )
+            .values(**update_values)
+        )
+
+        try:
+            await self._session.execute(sql)
+
+        except IntegrityError as exc:
+            raise self._error_parser(user, exc)
+
     @staticmethod
-    def _error_parser(user: CreateUserDTODAO, exc: IntegrityError) -> BaseExceptions:
+    def _error_parser(
+            user: CreateUserDTODAO | UpdateUserDTODAO | BaseUserDTODAO,
+            exc: IntegrityError
+    ) -> BaseExceptions:
         database_column = exc.__cause__.__cause__.constraint_name
         if database_column == "users_email_key":
             return UserAlreadyExist(user.email)

@@ -24,6 +24,7 @@ class UserDTODAO(BaseDTO):
     email: str
     first_name: str
     last_name: str
+    phone_number: str
 
 
 @dataclass
@@ -31,6 +32,17 @@ class CreateUserDTODAO(UserDTODAO):
     password: str
     phone_number: str
     image_url: str
+
+
+@dataclass
+class UpdateUserDTODAO(BaseDTO):
+    user_id: int
+    email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    password: str | None = None
+    phone_number: str | None = None
+    image_url: str | None = None
 
 
 @dataclass

@@ -2,9 +2,9 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.db.user.user import CreateUserDTODAO
+from src.dto.db.user.user import CreateUserDTODAO, UpdateUserDTODAO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
-from src.dto.services.user.user import CreateUserDTO, UserOutDTO, UserDTO
+from src.dto.services.user.user import CreateUserDTO, UserOutDTO, UserDTO, UpdateUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.exceptions.services.auth import InvalidEmail
 from src.infrastructure.db.transaction_manager import TransactionManager
@@ -36,7 +36,23 @@ class GetUserByEmail(UserUseCase):
         )
 
 
-# добавить изменения пароля
+class UpdateUser(UserUseCase):
+    async def __call__(self, user_data: UpdateUserDTO) -> None:
+        if user_data.password is not None:
+            hashed_password = self._hasher.hash(user_data.password)
+            user_data.password = hashed_password
+        user = UpdateUserDTODAO(**user_data.__dict__)
+
+        try:
+            await self._tm.user_dao.update_user(user)
+            await self._tm.commit()
+
+        except UserAlreadyExist:
+            logger.error(f"EXCEPTION IN UPDATE USER WITH EMAIL {user_data.email}")
+            await self._tm.rollback()
+
+            raise UserAlreadyExist(user_data.email)
+
 
 class UserService:
     def __init__(self, tm: TransactionManager, hasher: IHasher):
@@ -45,3 +61,6 @@ class UserService:
 
     async def get_user_by_email(self, email: str) -> UserDTO:
         return await GetUserByEmail(self._tm, self._hasher)(email)
+
+    async def update_user(self, user_data: UpdateUserDTO) -> None:
+        await UpdateUser(self._tm, self._hasher)(user_data)

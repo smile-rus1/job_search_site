@@ -9,7 +9,7 @@ class CompanyDB(models.UserDB):
 
     company_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.user_id"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         primary_key=True
     )
     company_name: Mapped[str] = mapped_column(String(50), nullable=False)

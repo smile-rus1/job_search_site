@@ -2,15 +2,26 @@ from fastapi import FastAPI, APIRouter
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
-from src.api.handlers.exceptions.common_exc_handlers import (
+from src.api.handlers import (
+    auth_router,
+    user_router,
+    applicant_router,
+    company_router
+)
+from src.api.handlers.exceptions import (
     auth_exception_handler,
     validation_exception_handler,
     request_validation_exception_handler,
+    user_exception_handler,
+    applicant_exception_handler,
+    company_exception_handler,
 )
-from src.api.handlers.exceptions.user_exc_handlers import user_exception_handler
-from src.api.handlers.user.auth import auth_router
 from src.api.web_config import APIConfig
-from src.exceptions.infrascructure.user.user import BaseUserException
+from src.exceptions.infrascructure import (
+    BaseUserException,
+    BaseApplicantException
+)
+from src.exceptions.infrascructure.company.company import BaseCompanyException
 from src.exceptions.services.auth import AuthException
 
 
@@ -18,12 +29,21 @@ def bind_exceptions_handlers(app: FastAPI):
     app.add_exception_handler(AuthException, auth_exception_handler)
     app.add_exception_handler(ValidationError, validation_exception_handler)
     app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+
+    """
+    Подправить те, которые идут снизу, чтобы не из инфры были exceptions, а из сервисов!
+    """
     app.add_exception_handler(BaseUserException, user_exception_handler)
+    app.add_exception_handler(BaseApplicantException, applicant_exception_handler)
+    app.add_exception_handler(BaseCompanyException, company_exception_handler)
 
 
 def bind_routers():
     api_routers = APIRouter()
     api_routers.include_router(auth_router)
+    api_routers.include_router(user_router)
+    api_routers.include_router(applicant_router)
+    api_routers.include_router(company_router)
 
     return api_routers
 

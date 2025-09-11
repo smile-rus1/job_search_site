@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, func, Boolean
 
 from src.infrastructure.db.models.base import Base
@@ -23,6 +23,18 @@ class UserDB(Base):
     image_url: Mapped[str] = mapped_column(String(255), nullable=True)
 
     type: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    applicants = relationship(
+        "ApplicantDB",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    companies = relationship(
+        "CompanyDB",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
     # для того чтобы понимать тип наследника
     __mapper_args__ = {

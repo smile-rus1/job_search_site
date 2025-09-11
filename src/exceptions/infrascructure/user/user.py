@@ -21,3 +21,14 @@ class UserNotFoundByEmail(BaseUserException):
 
     def message(self):
         return f"User with email {self.email} not found"
+
+
+@dataclass
+class UserIDException(BaseUserException):
+    user_id: int
+
+
+@dataclass
+class UserNotFoundByID(UserIDException):
+    def message(self):
+        return f"User with {self.user_id} id not found!"

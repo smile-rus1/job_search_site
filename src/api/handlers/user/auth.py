@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status
 
 from src.api.handlers.user.requests.auth import CreateApplicantRequest, CreateCompanyRequest, AuthDataRequest
 from src.api.permissions import login_required
@@ -131,9 +131,3 @@ async def logout(auth: TokenAuthDep):
 async def refresh_access_token(auth: TokenAuthDep):
     await auth.refresh_access_token()
     return {"detail": "Access token has been refresh"}
-
-
-@auth_router.get("/prosto")
-@login_required
-async def prosto(auth: TokenAuthDep):
-    return auth.request.state.user
