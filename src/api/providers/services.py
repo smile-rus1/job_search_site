@@ -6,6 +6,7 @@ from src.infrastructure.hasher import Hasher
 from src.interfaces.services.auth import IJWTAuth
 from src.services.applicant.applicant import ApplicantService
 from src.services.company.company import CompanyService
+from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
 
@@ -36,3 +37,9 @@ def company_service_getter(
         hasher: Hasher = Depends(hasher_provider)
 ):
     return CompanyService(tm=tm, hasher=hasher)
+
+
+def resume_service_getter(
+        tm: TransactionManager = Depends(tm_provider),
+):
+    return ResumeService(tm=tm)

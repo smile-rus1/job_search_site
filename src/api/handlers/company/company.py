@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from src.api.handlers.company.requests.company import UpdateCompanyRequest, SearchCompanyRequest
 from src.api.handlers.company.response.company import CompanyOut, CompanyDataResponse
 from src.api.handlers.user.response.user import UserOut
-from src.api.permissions import login_required
+from src.api.permissions import company_required
 from src.api.providers.abstract.services import company_service_provider
 from src.api.providers.auth import TokenAuthDep
 from src.dto.services.company.company import UpdateCompanyDTO, SearchDTO
@@ -23,7 +23,7 @@ company_router = APIRouter(prefix="/company", tags=["company"])
         500: {"description": "Internal Server Error"}
     }
 )
-@login_required
+@company_required
 async def update_company(
         user_id: int,
         company_data: UpdateCompanyRequest,

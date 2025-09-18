@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 from src.dto.base_dto import BaseDTO
 from src.dto.db.user.user import BaseUserDTODAO, UserOutDTODAO, CreateUserDTODAO, UserDTODAO
@@ -21,6 +22,7 @@ class CreateApplicantDTODAO(BaseDTO):
     description_applicant: str | None = None
     address: str | None = None
     level_education: EducationEnum | None = None
+    date_born: date | None = None
 
 
 @dataclass
@@ -31,6 +33,7 @@ class UpdateApplicantDTODAO(BaseDTO):
     description_applicant: str | None = None
     address: str | None = None
     level_education: EducationEnum | None = None
+    date_born: date | None = None
 
 
 @dataclass
@@ -44,7 +47,8 @@ class ApplicantDTODAO(BaseDTO):
     applicant_id: int
     user: BaseUserDTODAO
     gender: GenderEnum
-    description_applicant: str
-    address: str
-    is_confirmed: bool
-    level_education: EducationEnum
+    description_applicant: str | None = None
+    address: str | None = None
+    is_confirmed: bool | None = None
+    level_education: EducationEnum | None = None
+    date_born: date | None = None

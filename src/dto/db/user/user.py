@@ -17,6 +17,7 @@ class BaseUserDTODAO(BaseDTO):
     image_url: str | None = None
     is_superuser: bool | None = None
     is_admin: bool | None = None
+    type: str | None = None
 
 
 @dataclass

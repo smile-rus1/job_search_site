@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
 from src.api.handlers.user.requests.auth import CreateApplicantRequest, CreateCompanyRequest, AuthDataRequest
-from src.api.permissions import login_required
 from src.api.providers.abstract import services
 from src.api.handlers.user.response.user import UserOut
 from src.api.providers.auth import TokenAuthDep
@@ -43,7 +42,9 @@ async def register_applicant(
         description_applicant=applicant_data.description_applicant,
         address=applicant_data.address,
         level_education=applicant_data.level_education,
-        gender=applicant_data.gender
+        gender=applicant_data.gender,
+        date_born=applicant_data.date_born
+
     )
     applicant_out = await applicant_service.create_applicant(applicant_dto)
 

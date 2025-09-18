@@ -8,6 +8,7 @@ class AnonymousUser(BaseModel):
     email: str | None = None
     is_admin: bool | None = None
     is_superuser: bool | None = None
+    type: str | None = None
 
 
 class ActiveUser(BaseModel):
@@ -17,3 +18,4 @@ class ActiveUser(BaseModel):
     email: str
     is_admin: bool
     is_superuser: bool
+    type: str

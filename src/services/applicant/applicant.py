@@ -32,11 +32,12 @@ class CreateApplicant(ApplicantUseCase):
             description_applicant=applicant_dto.description_applicant,
             address=applicant_dto.address,
             level_education=applicant_dto.level_education,
-            gender=applicant_dto.gender
+            gender=applicant_dto.gender,
+            date_born=applicant_dto.date_born
         )
 
         try:
-            applicant_created = await self._tm.applicant_dao.create(applicant)
+            applicant_created = await self._tm.applicant_dao.create_applicant(applicant)
             await self._tm.commit()
 
         except UserAlreadyExist:
@@ -76,8 +77,6 @@ class GetApplicantByID(ApplicantUseCase):
                 last_name=applicant_data.user.last_name,
                 first_name=applicant_data.user.first_name,
                 email=applicant_data.user.email,
-                updated_at=None,
-                created_at=None
             ),
             applicant_id=applicant_data.applicant_id,
             description_applicant=applicant_data.description_applicant,

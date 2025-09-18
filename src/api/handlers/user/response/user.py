@@ -6,3 +6,5 @@ class UserOut(BaseModel):
     last_name: str
     first_name: str
     email: str
+    phone_number: str | None = None
+    image_url: str | None = None

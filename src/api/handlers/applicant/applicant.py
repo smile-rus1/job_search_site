@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, status
 from src.api.handlers.applicant.requests.applicant import UpdateApplicantRequest
 from src.api.handlers.applicant.response.applicant import ApplicantOut
 from src.api.handlers.user.response.user import UserOut
-from src.api.permissions import login_required
+from src.api.permissions import applicant_required
 from src.api.providers.abstract.services import applicant_service_provider
 from src.api.providers.auth import TokenAuthDep
 from src.dto.services.applicant.applicant import UpdateApplicantDTO
@@ -17,13 +17,13 @@ applicant_router = APIRouter(prefix="/applicants", tags=["Applicants"])
     "/{applicant_id}",
     status_code=status.HTTP_201_CREATED,
     responses={
-        202: {"description": "Applicant updated"},
+        201: {"description": "Applicant updated"},
         401: {"description": "Not authenticated"},
         409: {"description": "Applicant with this email does not exist"},
         500: {"description": "Internal Server Error"}
     }
 )
-@login_required
+@applicant_required
 async def update_applicant(
         applicant_id: int,
         applicant_data: UpdateApplicantRequest,

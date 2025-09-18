@@ -2,10 +2,10 @@ from typing import Type
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.db.dao import UserDAO
-from src.infrastructure.db.dao.applicant.applicant_dao import ApplicantDAO
-from src.infrastructure.db.dao.company.company_dao import CompanyDAO
-from src.interfaces.infrastructure.dao import IDAO
+from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
+from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
+from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
+from src.interfaces.infrastructure.dao.user_dao import IUserDAO
 from src.interfaces.infrastructure.transaction_manager import IBaseTransactionManager
 
 
@@ -21,18 +21,21 @@ class BaseTransactionManager(IBaseTransactionManager):
 
 
 class TransactionManager(BaseTransactionManager):
-    user_dao: UserDAO
-    applicant_dao: ApplicantDAO
-    company_dao: CompanyDAO
+    user_dao: IUserDAO
+    applicant_dao: IApplicantDAO
+    company_dao: ICompanyDAO
+    resume_dao: IResumeDAO
 
     def __init__(
             self,
             session: AsyncSession,
-            user_dao: Type[UserDAO],
-            applicant_dao: Type[ApplicantDAO],
-            company_dao: Type[CompanyDAO]
+            user_dao: Type[IUserDAO],
+            applicant_dao: Type[IApplicantDAO],
+            company_dao: Type[ICompanyDAO],
+            resume_dao: Type[IResumeDAO],
     ):
         super().__init__(session=session)
-        self.user_dao = user_dao(session=session)
-        self.applicant_dao = applicant_dao(session=session)
-        self.company_dao = company_dao(session=session)
+        self.user_dao = user_dao(session=session)  # type: ignore
+        self.applicant_dao = applicant_dao(session=session)  # type: ignore
+        self.company_dao = company_dao(session=session)  # type: ignore
+        self.resume_dao = resume_dao(session=session)  # type: ignore

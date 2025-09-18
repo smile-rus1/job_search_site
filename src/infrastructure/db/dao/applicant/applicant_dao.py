@@ -11,12 +11,14 @@ from src.dto.db.applicant.applicant import (
 from src.dto.db.user.user import UserOutDTODAO, BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
-from src.infrastructure.db.dao.base_dao import BaseDAO
 from src.infrastructure.db.models import ApplicantDB, UserDB
+from src.infrastructure.enums import TypeUser
+from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
+from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 
-class ApplicantDAO(BaseDAO):
-    async def create(self, applicant: CreateApplicantDTODAO) -> ApplicantOutDTODAO:
+class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
+    async def create_applicant(self, applicant: CreateApplicantDTODAO) -> ApplicantOutDTODAO:
         user_sql = (
             insert(UserDB.__table__)
             .values(
@@ -26,7 +28,7 @@ class ApplicantDAO(BaseDAO):
                 last_name=applicant.user.last_name,
                 phone_number=applicant.user.phone_number,
                 image_url=applicant.user.image_url,
-                type="applicant"
+                type=TypeUser.APPLICANT.value
             )
             .returning(UserDB.user_id)
         )
@@ -47,7 +49,8 @@ class ApplicantDAO(BaseDAO):
                 address=applicant.address,
                 gender=applicant.gender,
                 level_education=applicant.level_education,
-                is_confirmed=False
+                is_confirmed=False,
+                date_born=applicant.date_born
             )
             .returning(ApplicantDB.applicant_id)
         )
@@ -104,8 +107,8 @@ class ApplicantDAO(BaseDAO):
                 UserDB.last_name,
                 UserDB.phone_number,
             )
-            .join(UserDB, ApplicantDB.applicant_id == UserDB.user_id)
-            .where(ApplicantDB.applicant_id == user_id)
+            .join(UserDB, applicant_aliased.applicant_id == UserDB.user_id)
+            .where(applicant_aliased.applicant_id == user_id)
         )
         result = await self._session.execute(sql)
         model = result.first()

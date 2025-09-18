@@ -36,7 +36,8 @@ class AuthenticateUser(AuthUseCase):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "is_admin": user.is_admin,
-            "is_superuser": user.is_superuser
+            "is_superuser": user.is_superuser,
+            "type": user.type
         }
 
         await auth.set_tokens(data_dct)

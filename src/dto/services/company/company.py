@@ -10,11 +10,6 @@ class BaseCompanyDTO(BaseDTO):
 
 
 @dataclass
-class CompanyDTO(BaseCompanyDTO):
-    user_id: int
-
-
-@dataclass
 class CreateCompanyDTO(BaseDTO):
     user: CreateUserDTO
     company_name: str

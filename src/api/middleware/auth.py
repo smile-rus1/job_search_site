@@ -35,7 +35,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
                 email=access_token_data.get("email"),
                 is_admin=access_token_data.get("is_admin"),
                 is_superuser=access_token_data.get("is_superuser"),
-
+                type=access_token_data.get("type")
             )
         response = await call_next(request)
         return response

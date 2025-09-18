@@ -85,7 +85,8 @@ class JWTAuth(IJWTAuth):
             "first_name": user.get("first_name"),
             "last_name": user.get("last_name"),
             "is_admin": user.get("is_admin"),
-            "is_superuser": user.get("is_superuser")
+            "is_superuser": user.get("is_superuser"),
+            "type": user.get("type")
         }
 
         access_token = self._jwt_provider.create_access_token(data)

@@ -25,6 +25,7 @@ def bind_services(app: FastAPI):
 
     app.dependency_overrides[abstract.services.applicant_service_provider] = services.applicant_service_getter
     app.dependency_overrides[abstract.services.company_service_provider] = services.company_service_getter
+    app.dependency_overrides[abstract.services.resume_service_provider] = services.resume_service_getter
 
 
 def bind_middlewares(app: FastAPI):

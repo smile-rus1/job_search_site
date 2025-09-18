@@ -39,7 +39,7 @@ class CreateCompany(CompanyUseCase):
         )
 
         try:
-            applicant_created = await self._tm.company_dao.create(company)
+            applicant_created = await self._tm.company_dao.create_company(company)
             await self._tm.commit()
 
         except UserAlreadyExist:
@@ -80,7 +80,8 @@ class GetCompanyByID(CompanyUseCase):
                 first_name=company_data.user.first_name,
                 email=company_data.user.email,
                 updated_at=None,
-                created_at=None
+                created_at=None,
+                image_url=None
             ),
             company_id=company_data.company_id,
             address=company_data.address,

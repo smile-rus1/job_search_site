@@ -7,15 +7,23 @@ from src.dto.base_dto import BaseDTO
 @dataclass
 class BaseUserDTO(BaseDTO):
     first_name: str
+    last_name: str = None
+    email: str = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    image_url: str | None = None
+    phone_number: str | None = None
+
+
+@dataclass
+class UserDTO(BaseDTO):
+    user_id: int
+    first_name: str
     last_name: str
     email: str
     created_at: datetime | None
     updated_at: datetime | None
-
-
-@dataclass
-class UserDTO(BaseUserDTO):
-    user_id: int
+    type: str
 
 
 @dataclass

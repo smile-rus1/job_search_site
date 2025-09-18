@@ -11,18 +11,20 @@ from src.dto.db.company.company import (
 from src.dto.db.user.user import UserOutDTODAO, BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
-from src.infrastructure.db.dao.base_dao import BaseDAO
 from src.infrastructure.db.models import CompanyDB, UserDB
+from src.infrastructure.enums import TypeUser
+from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
+from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 
-class CompanyDAO(BaseDAO):
+class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
         self._query_builder = CompanyQueryBuilder()
 
-    async def create(self, company: CreateCompanyDTODAO) -> CompanyOutDTODAO:
+    async def create_company(self, company: CreateCompanyDTODAO) -> CompanyOutDTODAO:
         user_sql = (
-            insert(UserDB.__table__)
+            insert(UserDB.__table__)  # type: ignore
             .values(
                 email=company.user.email,
                 password=company.user.password,
@@ -30,7 +32,7 @@ class CompanyDAO(BaseDAO):
                 last_name=company.user.last_name,
                 phone_number=company.user.phone_number,
                 image_url=company.user.image_url,
-                type="company"
+                type=TypeUser.COMPANY.value
             )
             .returning(UserDB.user_id)
         )
@@ -43,7 +45,7 @@ class CompanyDAO(BaseDAO):
         user_id = result.scalar_one()
 
         company_sql = (
-            insert(CompanyDB.__table__)
+            insert(CompanyDB.__table__)  # type: ignore
             .values(
                 company_id=user_id,
                 company_name=company.company_name,
@@ -149,7 +151,7 @@ class CompanyDAO(BaseDAO):
             company: CreateCompanyDTODAO | UpdateCompanyDTODAO | BaseCompanyDTODAO,
             exc: IntegrityError
     ) -> BaseExceptions:
-        database_column = exc.__cause__.__cause__.constraint_name
+        database_column = exc.__cause__.__cause__.constraint_name  # type: ignore
         if database_column == "users_email_key":
             return UserAlreadyExist(company.user.email)
 
