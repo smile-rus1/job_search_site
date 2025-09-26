@@ -1,13 +1,20 @@
 from datetime import date
 
-from sqlalchemy import insert, select, update, delete, Select, func, or_, and_, Date, asc
+from loguru import logger
+from sqlalchemy import insert, select, update, delete, Select, func, or_, and_, asc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import load_only, joinedload, selectinload, aliased, contains_eager
+from sqlalchemy.orm import load_only, joinedload, contains_eager
 
 from src.dto.db.applicant.applicant import ApplicantDTODAO
-from src.dto.db.resume.resume import CreateResumeDTODAO, BaseResumeDTODAO, UpdateResumeDTODAO, ResumeDTODAO, \
-    SearchDTODAO, ResumeSearchOutDTODAO
+from src.dto.db.resume.resume import (
+    CreateResumeDTODAO,
+    BaseResumeDTODAO,
+    UpdateResumeDTODAO,
+    ResumeDTODAO,
+    SearchDTODAO,
+    ResumeSearchOutDTODAO
+)
 from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.db.work_experience.work_experience import WorkExperienceDTODAO
 from src.exceptions.base import BaseExceptions
@@ -41,7 +48,9 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
 
         try:
             result = await self._session.execute(sql)
-        except IntegrityError:
+
+        except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'create_resume': {exc}")
             raise self._error_parser()
 
         model = result.scalar_one()
@@ -78,7 +87,9 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
 
         try:
             await self._session.execute(sql)
-        except IntegrityError:
+
+        except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'update_resume': {exc}")
             raise self._error_parser()
 
     async def get_resume_by_id(self, resume_id: int) -> ResumeDTODAO:

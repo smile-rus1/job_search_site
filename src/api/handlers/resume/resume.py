@@ -13,7 +13,10 @@ from src.infrastructure.enums import EmploymentType
 from src.services.resume.resume import ResumeService
 
 
-resume_router = APIRouter(prefix="/resume", tags=["resume"])
+resume_router = APIRouter(
+    prefix="/resumes",
+    tags=["Resumes"]
+)
 
 
 @resume_router.post(

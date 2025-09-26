@@ -10,7 +10,7 @@ from src.dto.services.company.company import UpdateCompanyDTO, SearchDTO
 from src.services.company.company import CompanyService
 
 
-company_router = APIRouter(prefix="/company", tags=["company"])
+company_router = APIRouter(prefix="/companies", tags=["Companies"])
 
 
 @company_router.patch(

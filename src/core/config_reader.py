@@ -24,7 +24,7 @@ def config_loader() -> Config:
             port=int(os.getenv("WEB_PORT", 8000)),
             host=os.getenv("WEB_HOST", "localhost"),
             debug=bool(os.getenv("DEBUG", True)),
-            api_v1_str="/api/v1"
+            api_v1_str="/api/" + os.getenv("API_VERSION", "v1")
         ),
         auth=AuthConfig(
             secret_key=os.getenv("AUTH_SECRET_KEY"),

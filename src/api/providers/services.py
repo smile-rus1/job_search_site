@@ -9,6 +9,7 @@ from src.services.company.company import CompanyService
 from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
+from src.services.work_experience.work_experience import WorkExperienceService
 
 
 def auth_service_getter(
@@ -43,3 +44,9 @@ def resume_service_getter(
         tm: TransactionManager = Depends(tm_provider),
 ):
     return ResumeService(tm=tm)
+
+
+def work_experience_getter(
+        tm: TransactionManager = Depends(tm_provider)
+):
+    return WorkExperienceService(tm=tm)

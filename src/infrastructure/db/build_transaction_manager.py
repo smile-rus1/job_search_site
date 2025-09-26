@@ -11,4 +11,5 @@ def build_tm(session: AsyncSession) -> TransactionManager:
         applicant_dao=dao.ApplicantDAO,
         company_dao=dao.CompanyDAO,
         resume_dao=dao.ResumeDAO,
+        work_experience=dao.WorkExperienceDAO,
     )

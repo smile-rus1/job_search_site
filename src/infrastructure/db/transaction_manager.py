@@ -6,6 +6,7 @@ from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
 from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
 from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
+from src.interfaces.infrastructure.dao.workexperience_dao import IWorkExperienceDAO
 from src.interfaces.infrastructure.transaction_manager import IBaseTransactionManager
 
 
@@ -25,6 +26,7 @@ class TransactionManager(BaseTransactionManager):
     applicant_dao: IApplicantDAO
     company_dao: ICompanyDAO
     resume_dao: IResumeDAO
+    work_experience: IWorkExperienceDAO
 
     def __init__(
             self,
@@ -33,9 +35,11 @@ class TransactionManager(BaseTransactionManager):
             applicant_dao: Type[IApplicantDAO],
             company_dao: Type[ICompanyDAO],
             resume_dao: Type[IResumeDAO],
+            work_experience: Type[IWorkExperienceDAO],
     ):
         super().__init__(session=session)
         self.user_dao = user_dao(session=session)  # type: ignore
         self.applicant_dao = applicant_dao(session=session)  # type: ignore
         self.company_dao = company_dao(session=session)  # type: ignore
         self.resume_dao = resume_dao(session=session)  # type: ignore
+        self.work_experience = work_experience(session=session)  # type: ignore

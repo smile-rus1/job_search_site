@@ -16,3 +16,7 @@ def company_service_provider():
 
 def resume_service_provider():
     raise NotImplementedError
+
+
+def work_experience_service_provider():
+    raise NotImplementedError

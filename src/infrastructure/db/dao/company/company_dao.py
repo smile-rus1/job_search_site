@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy import insert, update, select, Select, asc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +40,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
 
         try:
             result = await self._session.execute(user_sql)
+
         except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'create_company': {exc}")
             raise self._error_parser(company, exc)
 
         user_id = result.scalar_one()
@@ -56,7 +59,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
 
         try:
             result = await self._session.execute(company_sql)
+
         except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'create_company': {exc}")
             raise self._error_parser(company, exc)
 
         company_id = result.scalar_one()
@@ -89,7 +94,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
 
         try:
             await self._session.execute(sql)
+
         except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'update_company': {exc}")
             raise self._error_parser(company, exc)
 
     async def get_company_by_id(self, user_id: int) -> CompanyDTODAO:

@@ -20,16 +20,16 @@ def bind_auth(app: FastAPI):
 
 
 def bind_services(app: FastAPI):
-    app.dependency_overrides[abstract.services.auth_service_provider] = services.auth_service_getter
-    app.dependency_overrides[abstract.services.user_service_provider] = services.user_service_getter
-
-    app.dependency_overrides[abstract.services.applicant_service_provider] = services.applicant_service_getter
-    app.dependency_overrides[abstract.services.company_service_provider] = services.company_service_getter
-    app.dependency_overrides[abstract.services.resume_service_provider] = services.resume_service_getter
+    app.dependency_overrides[abstract.services.auth_service_provider] = services.auth_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.user_service_provider] = services.user_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.applicant_service_provider] = services.applicant_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.company_service_provider] = services.company_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.resume_service_provider] = services.resume_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.work_experience_service_provider] = services.work_experience_getter  # type: ignore
 
 
 def bind_middlewares(app: FastAPI):
-    app.add_middleware(AuthenticationMiddleware)
+    app.add_middleware(AuthenticationMiddleware)  # type: ignore
 
 
 def bind_providers(app: FastAPI, config: Config):

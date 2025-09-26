@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -50,6 +51,7 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'update_user': {exc}")
             raise self._error_parser(user, exc)
 
     @staticmethod
