@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 
 from src.dto.db.user.user import CreateUserDTODAO, UserOutDTODAO, BaseUserDTODAO, UpdateUserDTODAO
 from src.exceptions.base import BaseExceptions
-from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail
+from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail, BaseUserException
 
 from src.infrastructure.db.models.user import UserDB
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
@@ -54,6 +54,23 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
             logger.info(f"EXCEPTION IN 'update_user': {exc}")
             raise self._error_parser(user, exc)
 
+    async def confirm_user(self, user: BaseUserDTODAO) -> bool:
+        sql = (
+            update(UserDB)
+            .where(
+                UserDB.user_id == user.user_id,
+                UserDB.type == user.type
+            )
+            .values(is_confirmed=True)
+        )
+        try:
+            await self._session.execute(sql)
+            return True
+
+        except IntegrityError as exc:
+            logger.info(f"EXCEPTION IN 'confirm_user': {exc}")
+            raise self._error_parser(user, exc)
+
     @staticmethod
     def _error_parser(
             user: CreateUserDTODAO | UpdateUserDTODAO | BaseUserDTODAO,
@@ -62,3 +79,4 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
         database_column = exc.__cause__.__cause__.constraint_name  # type: ignore
         if database_column == "users_email_key":
             return UserAlreadyExist(user.email)
+        return BaseUserException()

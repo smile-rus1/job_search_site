@@ -21,6 +21,7 @@ class UserDB(Base):
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(20), nullable=False)
     image_url: Mapped[str] = mapped_column(String(255), nullable=True)
+    is_confirmed: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
 
     type: Mapped[str] = mapped_column(String(20), nullable=False)
 

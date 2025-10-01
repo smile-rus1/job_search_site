@@ -7,3 +7,6 @@ class IUserDAO:
 
     async def update_user(self, user: UpdateUserDTODAO) -> None:
         raise NotImplementedError
+
+    async def confirm_user(self, user: BaseUserDTODAO) -> bool:
+        raise NotImplementedError

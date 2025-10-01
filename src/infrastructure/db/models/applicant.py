@@ -22,7 +22,6 @@ class ApplicantDB(UserDB):
     address: Mapped[str] = mapped_column(String(100), nullable=True)
     gender: Mapped[str] = mapped_column(Enum(GenderEnum), nullable=False)
     level_education: Mapped[str] = mapped_column(Enum(EducationEnum), nullable=True)
-    is_confirmed: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     resumes: Mapped[list["ResumeDB"]] = relationship(  # type: ignore
         back_populates="applicant",

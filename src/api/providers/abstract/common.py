@@ -2,6 +2,14 @@ def session_provider():
     raise NotImplementedError
 
 
+def redis_pool_provider():
+    raise NotImplementedError
+
+
+def redis_db_provider():
+    raise NotImplementedError
+
+
 def hasher_provider():
     raise NotImplementedError
 

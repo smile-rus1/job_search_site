@@ -1,18 +1,27 @@
+import json
+import uuid
 from abc import ABC
 
 from loguru import logger
 
+from src.core.config_reader import config
 from src.dto.db.company.company import CreateCompanyDTODAO, UpdateCompanyDTODAO, SearchDTODAO
 from src.dto.db.user.user import CreateUserDTODAO
 from src.dto.services.company.company import (
     CreateCompanyDTO,
     CompanyOutDTO,
-    UpdateCompanyDTO, CompanyDTO, SearchDTO, CompanyDataDTO
+    UpdateCompanyDTO,
+    CompanyDTO,
+    SearchDTO,
+    CompanyDataDTO
 )
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
+from src.infrastructure.celery import email_tasks
 from src.infrastructure.db.transaction_manager import TransactionManager
+from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
+from src.utils import create_confirm_link
 
 
 class CompanyUseCase(ABC):
@@ -39,7 +48,7 @@ class CreateCompany(CompanyUseCase):
         )
 
         try:
-            applicant_created = await self._tm.company_dao.create_company(company)
+            company_created = await self._tm.company_dao.create_company(company)
             await self._tm.commit()
 
         except UserAlreadyExist:
@@ -47,12 +56,29 @@ class CreateCompany(CompanyUseCase):
             await self._tm.rollback()
             raise UserAlreadyExist(email=company_dto.user.email)
 
+        token = uuid.uuid4().hex
+        redis_key = config.auth.user_confirm_key.format(token=token)
+
+        confirm_link = create_confirm_link.create_confirm_link(token)
+
+        await self._tm.redis_db.set(
+            key=redis_key,
+            value=json.dumps({"user_id": company_created.user.user_id, "type": TypeUser.COMPANY.value}),
+            expire=300
+        )
+
+        logger.info(f"LINK TO CONFIRM {confirm_link}")
+        email_tasks.send_confirmation_email_task.delay(
+            to_email=company_created.user.email,
+            confirm_link=confirm_link
+        )
+
         return CompanyOutDTO(
             user=UserOutDTO(
-                user_id=applicant_created.user.user_id,
-                last_name=company_dto.user.last_name,
-                first_name=company_dto.user.first_name,
-                email=company_dto.user.email
+                user_id=company_created.user.user_id,
+                last_name=company_created.user.last_name,
+                first_name=company_created.user.first_name,
+                email=company_created.user.email
             )
         )
 

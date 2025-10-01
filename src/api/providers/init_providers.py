@@ -11,8 +11,10 @@ from src.infrastructure.auth import jwt
 
 def bind_common(app: FastAPI, config: Config):
     app.dependency_overrides[abstract.common.session_provider] = common_provide.db_session(config)
+    app.dependency_overrides[abstract.common.redis_pool_provider] = common_provide.redis_pool_getter(config)
     app.dependency_overrides[abstract.common.hasher_provider] = common_provide.hasher_getter
     app.dependency_overrides[abstract.common.tm_provider] = common_provide.tm_getter
+    app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter
 
 
 def bind_auth(app: FastAPI):

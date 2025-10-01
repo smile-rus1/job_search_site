@@ -15,7 +15,7 @@ class CompanyDB(models.UserDB):
     company_name: Mapped[str] = mapped_column(String(50), nullable=False)
     description_company: Mapped[str] = mapped_column(String(500), nullable=True)
     address: Mapped[str] = mapped_column(String(100), nullable=True)
-    is_confirmed: Mapped[bool] = mapped_column(Boolean(), default=False)
+    company_is_confirmed: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
     # тут мб сделать, чтобы ещё были как-бы менеджеры или что-то типо такого 1:M (1 компания: Много менеджеров)
     # managers: Mapped["ManagerDB"] = relastionship()
 

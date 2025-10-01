@@ -51,7 +51,6 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
                 address=applicant.address,
                 gender=applicant.gender,
                 level_education=applicant.level_education,
-                is_confirmed=False,
                 date_born=applicant.date_born
             )
             .returning(ApplicantDB.applicant_id)

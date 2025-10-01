@@ -93,6 +93,23 @@ async def register_company(
     )
 
 
+@auth_router.get(
+    "/confirm/{token}",
+    responses={
+        200: {"description": "Confirm"},
+        409: {"description": "User already exist"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+async def confirm_user(
+        token: str,
+        auth_service: AuthService = Depends(services.auth_service_provider)
+):
+    is_confirmed = await auth_service.verify_user(token)
+
+    return {"is_confirmed": is_confirmed}
+
+
 @auth_router.post(
     "/login",
     status_code=status.HTTP_200_OK,

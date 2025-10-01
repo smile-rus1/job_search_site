@@ -1,9 +1,11 @@
+import json
 from abc import ABC
 
 from loguru import logger
 
+from src.core.config_reader import config
+from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.services.user.auth import AuthUserDTO, AuthUserOutDTO
-from src.dto.services.user.user import UserDTO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
 from src.infrastructure.db.transaction_manager import TransactionManager
@@ -52,6 +54,21 @@ class AuthenticateUser(AuthUseCase):
         )
 
 
+class VerifyUser(AuthUseCase):
+    async def __call__(self, token: str) -> bool:
+        redis_key = config.auth.user_confirm_key.format(token=token)
+        data = await self._tm.redis_db.get(redis_key)
+        if data is None:
+            return False
+
+        user_data: dict = json.loads(data.decode("utf-8"))
+        user = BaseUserDTODAO(user_id=user_data.get("user_id"), type=user_data.get("type"))
+        is_confirmed = await self._tm.user_dao.confirm_user(user)
+        await self._tm.commit()
+
+        return is_confirmed
+
+
 class AuthService:
     def __init__(self, tm: TransactionManager, hasher: IHasher):
         self._tm = tm
@@ -59,3 +76,6 @@ class AuthService:
 
     async def authenticate_user(self, auth_dto: AuthUserDTO, auth: IJWTAuth) -> AuthUserOutDTO:
         return await AuthenticateUser(self._tm, self._hasher)(auth_dto, auth)
+
+    async def verify_user(self, token: str) -> bool:
+        return await VerifyUser(self._tm, self._hasher)(token)

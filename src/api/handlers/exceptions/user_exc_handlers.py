@@ -15,3 +15,6 @@ def user_exception_handler(_, exc: BaseUserException):
 
         case UserNotFoundByID():
             return JSONResponse(status_code=404, content={"message": exc.message()})
+
+        case BaseUserException():
+            return JSONResponse(status_code=500, content={"message": "Sorry, service not available"})

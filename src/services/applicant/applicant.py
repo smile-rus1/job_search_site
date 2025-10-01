@@ -1,14 +1,21 @@
+import json
+import uuid
 from abc import ABC
 
 from loguru import logger
 
+from src.core.config_reader import config
 from src.dto.db.applicant.applicant import CreateApplicantDTODAO, UpdateApplicantDTODAO
 from src.dto.db.user.user import CreateUserDTODAO
 from src.dto.services.applicant.applicant import CreateApplicantDTO, ApplicantOutDTO, UpdateApplicantDTO, ApplicantDTO
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.infrastructure.db.transaction_manager import TransactionManager
+from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
+from src.infrastructure.celery import email_tasks
+
+import src.utils.create_confirm_link as create_confirm_link
 
 
 class ApplicantUseCase(ABC):
@@ -44,6 +51,23 @@ class CreateApplicant(ApplicantUseCase):
             logger.error(f"USER ALREADY EXISTS WITH THIS EMAIL {applicant_dto.user.email}")
             await self._tm.rollback()
             raise UserAlreadyExist(email=applicant_dto.user.email)
+
+        token = uuid.uuid4().hex
+        redis_key = config.auth.user_confirm_key.format(token=token)
+
+        confirm_link = create_confirm_link.create_confirm_link(token)
+
+        await self._tm.redis_db.set(
+            key=redis_key,
+            value=json.dumps({"user_id": applicant_created.user.user_id, "type": TypeUser.APPLICANT.value}),
+            expire=300
+        )
+
+        logger.info(f"LINK TO CONFIRM {confirm_link}")
+        email_tasks.send_confirmation_email_task.delay(
+            to_email=applicant_created.user.email,
+            confirm_link=confirm_link
+        )
 
         return ApplicantOutDTO(
             user=UserOutDTO(

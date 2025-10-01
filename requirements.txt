@@ -13,3 +13,5 @@ pytest~=8.3.4
 httpx~=0.28.1
 python-jose==3.3.0
 loguru==0.7.3
+redis~=5.2.1
+celery~=5.5.3
