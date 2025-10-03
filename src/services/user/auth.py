@@ -8,13 +8,13 @@ from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.services.user.auth import AuthUserDTO, AuthUserOutDTO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
-from src.infrastructure.db.transaction_manager import TransactionManager
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.interfaces.services.auth import IJWTAuth
 
 
 class AuthUseCase(ABC):
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 
@@ -70,7 +70,7 @@ class VerifyUser(AuthUseCase):
 
 
 class AuthService:
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 

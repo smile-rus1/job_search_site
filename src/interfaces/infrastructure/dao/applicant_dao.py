@@ -1,13 +1,12 @@
-from src.dto.db.applicant.applicant import CreateApplicantDTODAO, ApplicantOutDTODAO, UpdateApplicantDTODAO, \
-    ApplicantDTODAO
+from src.dto.db.applicant.applicant import BaseApplicantDTODAO
 
 
 class IApplicantDAO:
-    async def create_applicant(self, applicant: CreateApplicantDTODAO) -> ApplicantOutDTODAO:
+    async def create_applicant(self, applicant: BaseApplicantDTODAO) -> BaseApplicantDTODAO:
         raise NotImplementedError
 
-    async def update_applicant(self, applicant: UpdateApplicantDTODAO) -> None:
+    async def update_applicant(self, applicant: BaseApplicantDTODAO) -> None:
         raise NotImplementedError
 
-    async def get_applicant_by_id(self, applicant_id: int) -> ApplicantDTODAO:
+    async def get_applicant_by_id(self, applicant_id: int) -> BaseApplicantDTODAO:
         raise NotImplementedError

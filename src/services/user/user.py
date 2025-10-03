@@ -2,17 +2,17 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.db.user.user import CreateUserDTODAO, UpdateUserDTODAO
+from src.dto.db.user.user import UpdateUserDTODAO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
-from src.dto.services.user.user import CreateUserDTO, UserOutDTO, UserDTO, UpdateUserDTO
+from src.dto.services.user.user import  UserDTO, UpdateUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.exceptions.services.auth import InvalidEmail
-from src.infrastructure.db.transaction_manager import TransactionManager
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
 class UserUseCase(ABC):
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 
@@ -56,7 +56,7 @@ class UpdateUser(UserUseCase):
 
 
 class UserService:
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 

@@ -5,8 +5,8 @@ from abc import ABC
 from loguru import logger
 
 from src.core.config_reader import config
-from src.dto.db.company.company import CreateCompanyDTODAO, UpdateCompanyDTODAO, SearchDTODAO
-from src.dto.db.user.user import CreateUserDTODAO
+from src.dto.db.company.company import SearchDTODAO, BaseCompanyDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.services.company.company import (
     CreateCompanyDTO,
     CompanyOutDTO,
@@ -18,14 +18,14 @@ from src.dto.services.company.company import (
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.infrastructure.celery import email_tasks
-from src.infrastructure.db.transaction_manager import TransactionManager
 from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.utils import create_confirm_link
 
 
 class CompanyUseCase(ABC):
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 
@@ -33,8 +33,8 @@ class CompanyUseCase(ABC):
 class CreateCompany(CompanyUseCase):
     async def __call__(self, company_dto: CreateCompanyDTO) -> CompanyOutDTO:
         hashed_password = self._hasher.hash(company_dto.user.password)
-        company = CreateCompanyDTODAO(
-            user=CreateUserDTODAO(
+        company = BaseCompanyDTODAO(
+            user=BaseUserDTODAO(
                 email=company_dto.user.email,
                 password=hashed_password,
                 last_name=company_dto.user.last_name,
@@ -85,7 +85,15 @@ class CreateCompany(CompanyUseCase):
 
 class UpdateCompany(CompanyUseCase):
     async def __call__(self, company_data: UpdateCompanyDTO) -> None:
-        company = UpdateCompanyDTODAO(**company_data.__dict__)
+        company = BaseCompanyDTODAO(
+            user=BaseUserDTODAO(
+                user_id=company_data.user_id,
+                email=company_data.email,
+            ),
+            company_name=company_data.company_name,
+            description_company=company_data.description_company,
+            address=company_data.address
+        )
 
         try:
             await self._tm.company_dao.update_company(company)
@@ -105,11 +113,8 @@ class GetCompanyByID(CompanyUseCase):
                 last_name=company_data.user.last_name,
                 first_name=company_data.user.first_name,
                 email=company_data.user.email,
-                updated_at=None,
-                created_at=None,
-                image_url=None
             ),
-            company_id=company_data.company_id,
+            company_id=company_data.user.user_id,
             address=company_data.address,
             company_name=company_data.company_name,
             description_company=company_data.description_company
@@ -123,7 +128,7 @@ class SearchCompanies(CompanyUseCase):
 
         return [
             CompanyDataDTO(
-                company_id=company.company_id,
+                company_id=company.user.user_id,
                 company_name=company.company_name,
                 description_company=company.description_company,
                 address=company.address
@@ -133,7 +138,7 @@ class SearchCompanies(CompanyUseCase):
 
 
 class CompanyService:
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 

@@ -5,9 +5,6 @@ from redis.asyncio import Redis
 
 
 class IRedisDB(abc.ABC):
-    def __init__(self, redis: Redis):
-        self._redis = redis
-
     @abc.abstractmethod
     async def set(self, key: str, value: Any, expire: Optional[int] = None) -> bool:
         raise NotImplementedError

@@ -1,17 +1,16 @@
-from src.dto.db.company.company import CreateCompanyDTODAO, CompanyOutDTODAO, UpdateCompanyDTODAO, CompanyDTODAO, \
-    CompanyDataDTODAO, SearchDTODAO
+from src.dto.db.company.company import SearchDTODAO, BaseCompanyDTODAO
 
 
 class ICompanyDAO:
-    async def create_company(self, company: CreateCompanyDTODAO) -> CompanyOutDTODAO:
+    async def create_company(self, company: BaseCompanyDTODAO) -> BaseCompanyDTODAO:
         raise NotImplementedError
 
-    async def update_company(self, company: UpdateCompanyDTODAO) -> None:
+    async def update_company(self, company: BaseCompanyDTODAO) -> None:
         raise NotImplementedError
 
-    async def get_company_by_id(self, user_id: int) -> CompanyDTODAO:
+    async def get_company_by_id(self, user_id: int) -> BaseCompanyDTODAO:
         raise NotImplementedError
 
-    async def search_company(self, search_dto: SearchDTODAO) -> list[CompanyDataDTODAO]:
+    async def search_company(self, search_dto: SearchDTODAO) -> list[BaseCompanyDTODAO]:
         raise NotImplementedError
 

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.db.transaction_manager import TransactionManager
+from src.services.transaction_manager import TransactionManager
 from src.infrastructure.db import dao
 from src.interfaces.infrastructure.redis_db import IRedisDB
 

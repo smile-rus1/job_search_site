@@ -5,21 +5,26 @@ from abc import ABC
 from loguru import logger
 
 from src.core.config_reader import config
-from src.dto.db.applicant.applicant import CreateApplicantDTODAO, UpdateApplicantDTODAO
-from src.dto.db.user.user import CreateUserDTODAO
-from src.dto.services.applicant.applicant import CreateApplicantDTO, ApplicantOutDTO, UpdateApplicantDTO, ApplicantDTO
+from src.dto.db.applicant.applicant import BaseApplicantDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
+from src.dto.services.applicant.applicant import (
+    CreateApplicantDTO,
+    ApplicantOutDTO,
+    UpdateApplicantDTO,
+    ApplicantDTO
+)
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
-from src.infrastructure.db.transaction_manager import TransactionManager
 from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
 from src.infrastructure.celery import email_tasks
 
 import src.utils.create_confirm_link as create_confirm_link
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
 class ApplicantUseCase(ABC):
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 
@@ -27,8 +32,8 @@ class ApplicantUseCase(ABC):
 class CreateApplicant(ApplicantUseCase):
     async def __call__(self, applicant_dto: CreateApplicantDTO) -> ApplicantOutDTO:
         hashed_password = self._hasher.hash(applicant_dto.user.password)
-        applicant = CreateApplicantDTODAO(
-            user=CreateUserDTODAO(
+        applicant = BaseApplicantDTODAO(
+            user=BaseUserDTODAO(
                 email=applicant_dto.user.email,
                 password=hashed_password,
                 last_name=applicant_dto.user.last_name,
@@ -81,7 +86,17 @@ class CreateApplicant(ApplicantUseCase):
 
 class UpdateApplicant(ApplicantUseCase):
     async def __call__(self, applicant_data: UpdateApplicantDTO) -> None:
-        applicant = UpdateApplicantDTODAO(**applicant_data.__dict__)
+        applicant = BaseApplicantDTODAO(
+            user=BaseUserDTODAO(
+                user_id=applicant_data.user_id,
+                email=applicant_data.email,
+            ),
+            gender=applicant_data.gender,
+            description_applicant=applicant_data.description_applicant,
+            address=applicant_data.address,
+            level_education=applicant_data.level_education,
+            date_born=applicant_data.date_born,
+        )
 
         try:
             await self._tm.applicant_dao.update_applicant(applicant)
@@ -102,17 +117,17 @@ class GetApplicantByID(ApplicantUseCase):
                 first_name=applicant_data.user.first_name,
                 email=applicant_data.user.email,
             ),
-            applicant_id=applicant_data.applicant_id,
+            applicant_id=applicant_data.user.user_id,
             description_applicant=applicant_data.description_applicant,
             address=applicant_data.address,
             gender=applicant_data.gender,
-            is_confirmed=applicant_data.is_confirmed,
+            is_confirmed=applicant_data.user.is_confirmed,
             level_education=applicant_data.level_education
         )
 
 
 class ApplicantService:
-    def __init__(self, tm: TransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
         self._tm = tm
         self._hasher = hasher
 

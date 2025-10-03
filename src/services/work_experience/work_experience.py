@@ -6,11 +6,11 @@ from src.dto.db.work_experience.work_experience import CreateWorkExperienceDTODA
 from src.dto.services.work_exprerience.work_experience import CreateWorkExperienceDTO, WorkExperienceDTO, \
     UpdateWorkExperienceDTO
 from src.exceptions.infrascructure.work_experiences.work_experiences import WorkExperiences
-from src.infrastructure.db.transaction_manager import TransactionManager
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
 class WorkExperienceUseCase(ABC):
-    def __init__(self, tm: TransactionManager):
+    def __init__(self, tm: IBaseTransactionManager):
         self._tm = tm
 
 
@@ -60,7 +60,7 @@ class DeleteWorkExperience(WorkExperienceUseCase):
 
 
 class WorkExperienceService:
-    def __init__(self, tm: TransactionManager):
+    def __init__(self, tm: IBaseTransactionManager):
         self._tm = tm
 
     async def create_work_experience(self, work_experience_dto: CreateWorkExperienceDTO) -> WorkExperienceDTO:

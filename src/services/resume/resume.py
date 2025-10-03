@@ -4,16 +4,22 @@ from loguru import logger
 
 from src.dto.db.resume.resume import CreateResumeDTODAO, UpdateResumeDTODAO, SearchDTODAO
 from src.dto.services.applicant.applicant import ApplicantDTO
-from src.dto.services.resume.resume import CreateResumeDTO, ResumeOutDTO, UpdateResumeDTO, ResumeDTO, SearchResumeDTO, \
+from src.dto.services.resume.resume import (
+    CreateResumeDTO,
+    ResumeOutDTO,
+    UpdateResumeDTO,
+    ResumeDTO,
+    SearchResumeDTO,
     ResumeSearchOutDTO
+)
 from src.dto.services.user.user import BaseUserDTO
 from src.dto.services.work_exprerience.work_experience import WorkExperienceDTO
 from src.exceptions.infrascructure.resume.resume import ResumeException
-from src.infrastructure.db.transaction_manager import TransactionManager
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
 class ResumeUseCase(ABC):
-    def __init__(self, tm: TransactionManager):
+    def __init__(self, tm: IBaseTransactionManager):
         self._tm = tm
 
 
@@ -151,7 +157,7 @@ class DeleteResume(ResumeUseCase):
 
 
 class ResumeService:
-    def __init__(self, tm: TransactionManager):
+    def __init__(self, tm: IBaseTransactionManager):
         self._tm = tm
 
     async def create_resume(self, resume_dto: CreateResumeDTO) -> ResumeOutDTO:

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.providers.abstract.common import session_provider, redis_pool_provider, redis_db_provider
 from src.core.config import Config
 from src.infrastructure.connections import get_db_connection, get_redis_connections
-from src.infrastructure.db.build_transaction_manager import build_tm
+from src.api.providers.build_transaction_manager import build_tm
 from src.infrastructure.hasher import Hasher
 from src.infrastructure.redis_db.redis_db import RedisDB
 from src.interfaces.infrastructure.redis_db import IRedisDB

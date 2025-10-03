@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 from loguru import logger
 from sqlalchemy import insert, update, select, Select, asc
 from sqlalchemy.exc import IntegrityError
@@ -5,11 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from src.dto.db.company.company import (
-    CompanyOutDTODAO,
-    CreateCompanyDTODAO,
-    UpdateCompanyDTODAO, BaseCompanyDTODAO, CompanyDTODAO, SearchDTODAO, CompanyDataDTODAO
+    BaseCompanyDTODAO,
+    SearchDTODAO
 )
-from src.dto.db.user.user import UserOutDTODAO, BaseUserDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
 from src.infrastructure.db.models import CompanyDB, UserDB
@@ -23,7 +24,7 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
         super().__init__(session)
         self._query_builder = CompanyQueryBuilder()
 
-    async def create_company(self, company: CreateCompanyDTODAO) -> CompanyOutDTODAO:
+    async def create_company(self, company: BaseCompanyDTODAO) -> BaseCompanyDTODAO:
         user_sql = (
             insert(UserDB.__table__)  # type: ignore
             .values(
@@ -66,8 +67,8 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
 
         company_id = result.scalar_one()
 
-        return CompanyOutDTODAO(
-            user=UserOutDTODAO(
+        return BaseCompanyDTODAO(
+            user=BaseUserDTODAO(
                 user_id=company_id,
                 email=company.user.email,
                 first_name=company.user.first_name,
@@ -75,21 +76,22 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             )
         )
 
-    async def update_company(self, company: UpdateCompanyDTODAO) -> None:
-        data_dict = company.__dict__
-        update_values = {
-            k: v for k, v in data_dict.items()
-            if v is not None and k != "user_id" and k != "email"
-        }
+    async def update_company(self, company: BaseCompanyDTODAO) -> None:
+        data = asdict(company)
+        user = {k: v for k, v in data.pop("user").items() if v is not None and k not in {"user_id", "email"}}
+        company_fields = {k: v for k, v in data.items() if v is not None}
+
+        if user:
+            company_fields["user"] = user
 
         sql = (
             update(CompanyDB)
             .where(
                 CompanyDB.company_id == UserDB.user_id,
-                UserDB.email == company.email,
-                CompanyDB.company_id == company.user_id
+                UserDB.email == company.user.email,
+                CompanyDB.company_id == company.user.user_id
             )
-            .values(**update_values)
+            .values(**company_fields)
         )
 
         try:
@@ -99,7 +101,7 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             logger.info(f"EXCEPTION IN 'update_company': {exc}")
             raise self._error_parser(company, exc)
 
-    async def get_company_by_id(self, user_id: int) -> CompanyDTODAO:
+    async def get_company_by_id(self, user_id: int) -> BaseCompanyDTODAO:
         company_aliased = aliased(CompanyDB, flat=True)
         sql = (
             select(
@@ -121,20 +123,20 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
         if model is None:
             raise UserNotFoundByID(user_id)
 
-        return CompanyDTODAO(
+        return BaseCompanyDTODAO(
             user=BaseUserDTODAO(
+                user_id=model.company_id,
                 last_name=model.last_name,
                 first_name=model.last_name,
                 phone_number=model.phone_number,
                 email=model.email
             ),
-            company_id=model.company_id,
             address=model.address,
             company_name=model.company_name,
             description_company=model.description_company
         )
 
-    async def search_company(self, search_dto: SearchDTODAO) -> list[CompanyDataDTODAO]:
+    async def search_company(self, search_dto: SearchDTODAO) -> list[BaseCompanyDTODAO]:
         sql = self._query_builder.get_query(
             company_name=search_dto.company_name,
             limit=search_dto.limit,
@@ -144,8 +146,10 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
         models = result.all()
 
         return [
-            CompanyDataDTODAO(
-                company_id=model.company_id,
+            BaseCompanyDTODAO(
+                user=BaseUserDTODAO(
+                    user_id=model.company_id,
+                ),
                 company_name=model.company_name,
                 description_company=model.description_company,
                 address=model.address
@@ -155,7 +159,7 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
 
     @staticmethod
     def _error_parser(
-            company: CreateCompanyDTODAO | UpdateCompanyDTODAO | BaseCompanyDTODAO,
+            company: BaseCompanyDTODAO,
             exc: IntegrityError
     ) -> BaseExceptions:
         database_column = exc.__cause__.__cause__.constraint_name  # type: ignore

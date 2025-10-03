@@ -7,7 +7,7 @@ from src.interfaces.infrastructure.redis_db import IRedisDB
 
 class RedisDB(IRedisDB):
     def __init__(self, redis: Redis):
-        super().__init__(redis)
+        self._redis = redis
 
     async def set(self, key: str, value: Any, expire: Optional[int] = None) -> bool:
         return await self._redis.set(key, value=value, ex=expire)

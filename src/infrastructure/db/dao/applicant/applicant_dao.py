@@ -1,15 +1,13 @@
+from dataclasses import asdict
+
 from loguru import logger
 from sqlalchemy import insert, update, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
-from src.dto.db.applicant.applicant import (
-    ApplicantOutDTODAO,
-    CreateApplicantDTODAO,
-    UpdateApplicantDTODAO,
-    BaseApplicantDTODAO, ApplicantDTODAO
-)
-from src.dto.db.user.user import UserOutDTODAO, BaseUserDTODAO
+from src.dto.db.applicant.applicant import BaseApplicantDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
+
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
 from src.infrastructure.db.models import ApplicantDB, UserDB
@@ -19,7 +17,7 @@ from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 
 class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
-    async def create_applicant(self, applicant: CreateApplicantDTODAO) -> ApplicantOutDTODAO:
+    async def create_applicant(self, applicant: BaseApplicantDTODAO) -> BaseApplicantDTODAO:
         user_sql = (
             insert(UserDB.__table__)
             .values(
@@ -64,8 +62,8 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
 
         applicant_id = result.scalar_one()
 
-        return ApplicantOutDTODAO(
-            user=UserOutDTODAO(
+        return BaseApplicantDTODAO(
+            user=BaseUserDTODAO(
                 user_id=applicant_id,
                 email=applicant.user.email,
                 first_name=applicant.user.first_name,
@@ -73,21 +71,22 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             )
         )
 
-    async def update_applicant(self, applicant: UpdateApplicantDTODAO) -> None:
-        data_dict = applicant.__dict__
+    async def update_applicant(self, applicant: BaseApplicantDTODAO) -> None:
+        data = asdict(applicant)
+        user = {k: v for k, v in data.pop("user").items() if v is not None and k not in {"user_id", "email"}}
+        applicant_fields = {k: v for k, v in data.items() if v is not None}
 
-        update_values = {
-            k: v for k, v in data_dict.items()
-            if v is not None and k != "user_id" and k != "email"
-        }
+        if user:
+            applicant_fields["user"] = user
+
         sql = (
             update(ApplicantDB)
             .where(
                 ApplicantDB.applicant_id == UserDB.user_id,
-                UserDB.email == applicant.email,
-                ApplicantDB.applicant_id == applicant.user_id
+                UserDB.email == applicant.user.email,
+                ApplicantDB.applicant_id == applicant.user.user_id
             )
-            .values(**update_values)
+            .values(**applicant_fields)
         )
 
         try:
@@ -97,7 +96,7 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             logger.info(f"EXCEPTION IN 'update_applicant': {exc}")
             raise self._error_parser(applicant, exc)
 
-    async def get_applicant_by_id(self, user_id: int) -> ApplicantDTODAO:
+    async def get_applicant_by_id(self, user_id: int) -> BaseApplicantDTODAO:
         applicant_aliased = aliased(ApplicantDB, flat=True)
         sql = (
             select(
@@ -121,24 +120,24 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
         if model is None:
             raise UserNotFoundByID(user_id)
 # ☺
-        return ApplicantDTODAO(
+        return BaseApplicantDTODAO(
             user=BaseUserDTODAO(
+                user_id=model.applicant_id,
                 last_name=model.last_name,
                 first_name=model.last_name,
                 phone_number=model.phone_number,
-                email=model.email
+                email=model.email,
+                is_confirmed=model.is_confirmed
             ),
-            applicant_id=model.applicant_id,
             description_applicant=model.description_applicant,
             address=model.address,
             level_education=model.level_education,
             gender=model.gender,
-            is_confirmed=model.is_confirmed,
         )
 
     @staticmethod
     def _error_parser(
-            applicant: CreateApplicantDTODAO | UpdateApplicantDTODAO | BaseApplicantDTODAO,
+            applicant: BaseApplicantDTODAO,
             exc: IntegrityError
     ) -> BaseExceptions:
         database_column = exc.__cause__.__cause__.constraint_name

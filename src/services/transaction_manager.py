@@ -1,6 +1,5 @@
 from typing import Type
 
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
@@ -9,7 +8,7 @@ from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
 from src.interfaces.infrastructure.dao.workexperience_dao import IWorkExperienceDAO
 from src.interfaces.infrastructure.redis_db import IRedisDB
-from src.interfaces.infrastructure.transaction_manager import IBaseTransactionManager
+from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
 class BaseTransactionManager(IBaseTransactionManager):
@@ -24,13 +23,6 @@ class BaseTransactionManager(IBaseTransactionManager):
 
 
 class TransactionManager(BaseTransactionManager):
-    user_dao: IUserDAO
-    redis_db: IRedisDB
-    applicant_dao: IApplicantDAO
-    company_dao: ICompanyDAO
-    resume_dao: IResumeDAO
-    work_experience: IWorkExperienceDAO
-
     def __init__(
             self,
             session: AsyncSession,
