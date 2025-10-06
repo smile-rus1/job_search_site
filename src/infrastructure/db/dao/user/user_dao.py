@@ -17,6 +17,9 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
         result = (await self._session.execute(sql)).scalar()
 
         if not result:
+            logger.bind(
+                app_name=f"{UserDAO.__name__} in {self.get_user_by_email.__name__}"
+            ).error(f"NOT FOUND BY EMAIL: {email}")
             raise UserNotFoundByEmail(email)
 
         return BaseUserDTODAO(
@@ -51,7 +54,9 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'update_user': {exc}")
+            logger.bind(
+                app_name=f"{UserDAO.__name__} in {self.update_user.__name__}"
+            ).error(f"WITH DATA {user}\nMESSAGE: {exc}")
             raise self._error_parser(user, exc)
 
     async def confirm_user(self, user: BaseUserDTODAO) -> bool:
@@ -68,7 +73,9 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
             return True
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'confirm_user': {exc}")
+            logger.bind(
+                app_name=f"{UserDAO.__name__} in {self.confirm_user.__name__}"
+            ).error(f"MESSAGE: {exc}")
             raise self._error_parser(user, exc)
 
     @staticmethod

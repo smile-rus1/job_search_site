@@ -37,7 +37,9 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
             res = (await self._session.execute(sql)).scalar_one()
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_work_experience': {exc}")
+            logger.bind(
+                app_name=f"{WorkExperienceDAO.__name__} in {self.create_work_experience.__name__}"
+            ).error(f"WITH DATA {work_experience}\nMESSAGE: {exc}")
             raise self._error_parser()
 
         return WorkExperienceDTODAO(
@@ -79,7 +81,9 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'update_work_experience': {exc}")
+            logger.bind(
+                app_name=f"{WorkExperienceDAO.__name__} in {self.update_work_experience.__name__}"
+            ).error(f"WITH DATA {work_experience}\nMESSAGE: {exc}")
             raise self._error_parser()
 
     async def delete_work_experience(self, applicant_id: int, resume_id: int, work_experience_id: int) -> None:

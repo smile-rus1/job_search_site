@@ -53,7 +53,9 @@ class CreateApplicant(ApplicantUseCase):
             await self._tm.commit()
 
         except UserAlreadyExist:
-            logger.error(f"USER ALREADY EXISTS WITH THIS EMAIL {applicant_dto.user.email}")
+            logger.bind(
+                app_name=f"{CreateApplicant.__name__}"
+            ).error(f"WITH DATA {applicant_dto}")
             await self._tm.rollback()
             raise UserAlreadyExist(email=applicant_dto.user.email)
 
@@ -68,7 +70,9 @@ class CreateApplicant(ApplicantUseCase):
             expire=300
         )
 
-        logger.info(f"LINK TO CONFIRM {confirm_link}")
+        logger.bind(
+            app_name=f"{CreateApplicant.__name__}"
+        ).info(f"LINK TO CONFIRM {confirm_link}")
         email_tasks.send_confirmation_email_task.delay(
             to_email=applicant_created.user.email,
             confirm_link=confirm_link
@@ -85,17 +89,17 @@ class CreateApplicant(ApplicantUseCase):
 
 
 class UpdateApplicant(ApplicantUseCase):
-    async def __call__(self, applicant_data: UpdateApplicantDTO) -> None:
+    async def __call__(self, applicant_dto: UpdateApplicantDTO) -> None:
         applicant = BaseApplicantDTODAO(
             user=BaseUserDTODAO(
-                user_id=applicant_data.user_id,
-                email=applicant_data.email,
+                user_id=applicant_dto.user_id,
+                email=applicant_dto.email,
             ),
-            gender=applicant_data.gender,
-            description_applicant=applicant_data.description_applicant,
-            address=applicant_data.address,
-            level_education=applicant_data.level_education,
-            date_born=applicant_data.date_born,
+            gender=applicant_dto.gender,
+            description_applicant=applicant_dto.description_applicant,
+            address=applicant_dto.address,
+            level_education=applicant_dto.level_education,
+            date_born=applicant_dto.date_born,
         )
 
         try:
@@ -103,9 +107,11 @@ class UpdateApplicant(ApplicantUseCase):
             await self._tm.commit()
 
         except UserAlreadyExist:
-            logger.error(f"EXCEPTION IN UPDATE APPLICANT WITH EMAIL {applicant_data.email}")
+            logger.bind(
+                app_name=f"{CreateApplicant.__name__}"
+            ).error(f"WITH DATA {applicant_dto}")
             await self._tm.rollback()
-            raise UserAlreadyExist(applicant_data.email)
+            raise UserAlreadyExist(applicant_dto.email)
 
 
 class GetApplicantByID(ApplicantUseCase):

@@ -43,7 +43,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             result = await self._session.execute(user_sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_company': {exc}")
+            logger.bind(
+                app_name=f"{CompanyDAO.__name__} in {self.create_company.__name__}"
+            ).error(f"WITH DATA {company}\nMESSAGE: {exc}")
             raise self._error_parser(company, exc)
 
         user_id = result.scalar_one()
@@ -62,7 +64,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             result = await self._session.execute(company_sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_company': {exc}")
+            logger.bind(
+                app_name=f"{CompanyDAO.__name__} in {self.create_company.__name__}"
+            ).error(f"WITH DATA {company}\nMESSAGE: {exc}")
             raise self._error_parser(company, exc)
 
         company_id = result.scalar_one()
@@ -98,7 +102,9 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'update_company': {exc}")
+            logger.bind(
+                app_name=f"{CompanyDAO.__name__} in {self.create_company.__name__}"
+            ).error(f"WITH DATA {company}\nMESSAGE: {exc}")
             raise self._error_parser(company, exc)
 
     async def get_company_by_id(self, user_id: int) -> BaseCompanyDTODAO:

@@ -52,7 +52,9 @@ class CreateCompany(CompanyUseCase):
             await self._tm.commit()
 
         except UserAlreadyExist:
-            logger.error(f"USER ALREADY EXISTS WITH THIS EMAIL {company_dto.user.email}")
+            logger.bind(
+                app_name=f"{CreateCompany.__name__}"
+            ).error(f"WITH DATA {company_dto}")
             await self._tm.rollback()
             raise UserAlreadyExist(email=company_dto.user.email)
 
@@ -67,7 +69,9 @@ class CreateCompany(CompanyUseCase):
             expire=300
         )
 
-        logger.info(f"LINK TO CONFIRM {confirm_link}")
+        logger.bind(
+            app_name=f"{CreateCompany.__name__}"
+        ).info(f"LINK TO CONFIRM {confirm_link}")
         email_tasks.send_confirmation_email_task.delay(
             to_email=company_created.user.email,
             confirm_link=confirm_link
@@ -84,15 +88,15 @@ class CreateCompany(CompanyUseCase):
 
 
 class UpdateCompany(CompanyUseCase):
-    async def __call__(self, company_data: UpdateCompanyDTO) -> None:
+    async def __call__(self, company_dto: UpdateCompanyDTO) -> None:
         company = BaseCompanyDTODAO(
             user=BaseUserDTODAO(
-                user_id=company_data.user_id,
-                email=company_data.email,
+                user_id=company_dto.user_id,
+                email=company_dto.email,
             ),
-            company_name=company_data.company_name,
-            description_company=company_data.description_company,
-            address=company_data.address
+            company_name=company_dto.company_name,
+            description_company=company_dto.description_company,
+            address=company_dto.address
         )
 
         try:
@@ -100,9 +104,11 @@ class UpdateCompany(CompanyUseCase):
             await self._tm.commit()
 
         except UserAlreadyExist:
-            logger.error(f"EXCEPTION IN UPDATE APPLICANT WITH EMAIL {company_data.email}")
+            logger.bind(
+                app_name=f"{UpdateCompany.__name__}"
+            ).error(f"WITH DATA {company_dto}")
             await self._tm.rollback()
-            raise UserAlreadyExist(company_data.email)
+            raise UserAlreadyExist(company_dto.email)
 
 
 class GetCompanyByID(CompanyUseCase):

@@ -23,7 +23,9 @@ class GetUserByEmail(UserUseCase):
             user = await self._tm.user_dao.get_user_by_email(email)
 
         except UserNotFoundByEmail:
-            logger.error(f"USER NOT FOUND WITH {email} email")
+            logger.bind(
+                app_name=f"{GetUserByEmail.__name__}"
+            ).error(f"NOT FOUND user with EMAIL: {email}")
             raise InvalidEmail(email)
 
         return UserDTO(
@@ -38,21 +40,23 @@ class GetUserByEmail(UserUseCase):
 
 
 class UpdateUser(UserUseCase):
-    async def __call__(self, user_data: UpdateUserDTO) -> None:
-        if user_data.password is not None:
-            hashed_password = self._hasher.hash(user_data.password)
-            user_data.password = hashed_password
-        user = UpdateUserDTODAO(**user_data.__dict__)
+    async def __call__(self, user_dto: UpdateUserDTO) -> None:
+        if user_dto.password is not None:
+            hashed_password = self._hasher.hash(user_dto.password)
+            user_dto.password = hashed_password
+        user = UpdateUserDTODAO(**user_dto.__dict__)
 
         try:
             await self._tm.user_dao.update_user(user)
             await self._tm.commit()
 
         except UserAlreadyExist:
-            logger.error(f"EXCEPTION IN UPDATE USER WITH EMAIL {user_data.email}")
+            logger.bind(
+                app_name=f"{UpdateUser.__name__}"
+            ).error(f"WITH DATA {user_dto}")
             await self._tm.rollback()
 
-            raise UserAlreadyExist(user_data.email)
+            raise UserAlreadyExist(user_dto.email)
 
 
 class UserService:

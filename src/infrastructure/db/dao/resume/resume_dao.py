@@ -50,7 +50,9 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
             result = await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_resume': {exc}")
+            logger.bind(
+                app_name=f"{ResumeDAO.__name__} in {self.create_resume.__name__}"
+            ).error(f"WITH DATA {resume}\nMESSAGE: {exc}")
             raise self._error_parser()
 
         model = result.scalar_one()
@@ -89,7 +91,9 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'update_resume': {exc}")
+            logger.bind(
+                app_name=f"{ResumeDAO.__name__} in {self.update_resume.__name__}"
+            ).error(f"WITH DATA {resume}\nMESSAGE: {exc}")
             raise self._error_parser()
 
     async def get_resume_by_id(self, resume_id: int) -> ResumeDTODAO:

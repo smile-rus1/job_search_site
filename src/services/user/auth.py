@@ -6,7 +6,7 @@ from loguru import logger
 from src.core.config_reader import config
 from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.services.user.auth import AuthUserDTO, AuthUserOutDTO
-from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
+from src.exceptions.infrascructure.user.user import UserNotFoundByEmail, BaseUserException
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
 from src.interfaces.infrastructure.hasher import IHasher
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
@@ -25,11 +25,15 @@ class AuthenticateUser(AuthUseCase):
             user = await self._tm.user_dao.get_user_by_email(auth_dto.email)
 
         except UserNotFoundByEmail:
-            logger.error(f"USER NOT FOUND WITH {auth_dto.email} email")
+            logger.bind(
+                app_name=f"{AuthenticateUser.__name__}"
+            ).error(f"USER NOT FOUND WITH: {auth_dto.email}")
             raise InvalidEmail(auth_dto.email)
 
         if not self._hasher.verify(auth_dto.password, user.password):
-            logger.error(f"INCORRECT PASSWORD ON USER {auth_dto.email}")
+            logger.bind(
+                app_name=f"{AuthenticateUser.__name__}"
+            ).error(f"INCORRECT PASSWORD ON USER: {auth_dto.email}")
             raise InvalidPassword()
 
         data_dct = {
@@ -63,10 +67,17 @@ class VerifyUser(AuthUseCase):
 
         user_data: dict = json.loads(data.decode("utf-8"))
         user = BaseUserDTODAO(user_id=user_data.get("user_id"), type=user_data.get("type"))
-        is_confirmed = await self._tm.user_dao.confirm_user(user)
-        await self._tm.commit()
+        try:
+            is_confirmed = await self._tm.user_dao.confirm_user(user)
+            await self._tm.commit()
 
-        return is_confirmed
+            return is_confirmed
+
+        except BaseUserException:
+            logger.bind(
+                app_name=f"{VerifyUser.__name__}"
+            ).error(f"TOKEN {token}")
+            await self._tm.rollback()
 
 
 class AuthService:

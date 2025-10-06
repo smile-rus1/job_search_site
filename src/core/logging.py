@@ -1,16 +1,44 @@
+import os
+import sys
+
 from loguru import logger
 
 
-def setup_logging():
-    import os
+class BaseLogger:
+    def __init__(self, level: str = "INFO"):
+        self.level = level
 
-    logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-    log_file_path = os.path.join(logs_dir, "log.txt")
-    os.makedirs(logs_dir, exist_ok=True)
-    logger.add(
-        log_file_path,
-        format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-        level="INFO",
-        rotation="10 MB"
-    )
+
+class FileLogger(BaseLogger):
+    def __init__(self, logs_dir: str | None = None, level: str = "INFO"):
+        super().__init__(level)
+        if logs_dir is None:
+            logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+        logger.add(
+            os.path.join(logs_dir, "{time:DD.MM.YYYY}-logs.txt"),
+            format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | NAME SERVICE: {extra[app_name]} | {message}",
+            level="INFO",
+            rotation="1 day"
+        )
+
+
+class ConsoleLogger(BaseLogger):
+    def __init__(self, level: str = "INFO"):
+        super().__init__(level)
+        logger.add(
+            sys.stdout,
+            format="<green>{time:HH:mm:ss}</green> | "
+                   "<level>{level}</level> | "
+                   "<green>NAME SERVICE: {extra[app_name]}</green> | "
+                   "{message}",
+            level="INFO"
+        )
+
+
+def setup_logging():
+    logger.remove()
+
+    FileLogger()
+    ConsoleLogger()
 

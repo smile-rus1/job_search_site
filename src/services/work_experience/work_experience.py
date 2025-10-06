@@ -3,8 +3,11 @@ from abc import ABC
 from loguru import logger
 
 from src.dto.db.work_experience.work_experience import CreateWorkExperienceDTODAO, UpdateWorkExperienceDTODAO
-from src.dto.services.work_exprerience.work_experience import CreateWorkExperienceDTO, WorkExperienceDTO, \
+from src.dto.services.work_exprerience.work_experience import (
+    CreateWorkExperienceDTO,
+    WorkExperienceDTO,
     UpdateWorkExperienceDTO
+)
 from src.exceptions.infrascructure.work_experiences.work_experiences import WorkExperiences
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
@@ -23,7 +26,9 @@ class CreateWorkExperience(WorkExperienceUseCase):
             await self._tm.commit()
 
         except WorkExperiences:
-            logger.error(f"EXCEPTION HAPPEN IN CREATE WORK EXPERIENCE with dto {work_experience_dto}")
+            logger.bind(
+                app_name=f"{CreateWorkExperience.__name__}"
+            ).error(f"WITH DATA {work_experience_dto}")
 
             await self._tm.rollback()
             raise WorkExperiences()
@@ -40,7 +45,9 @@ class UpdateWorkExperience(WorkExperienceUseCase):
             await self._tm.commit()
 
         except WorkExperiences:
-            logger.error(f"EXCEPTION HAPPEN IN CREATE WORK EXPERIENCE with dto {work_experience_dto}")
+            logger.bind(
+                app_name=f"{UpdateWorkExperience.__name__}"
+            ).error(f"WITH DATA {work_experience_dto}")
 
             await self._tm.rollback()
             raise WorkExperiences()

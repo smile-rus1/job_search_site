@@ -36,7 +36,9 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             result = await self._session.execute(user_sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_applicant': {exc}")
+            logger.bind(
+                app_name=f"{ApplicantDAO.__name__} in {self.create_applicant.__name__}"
+            ).error(f"WITH DATA {applicant}\nMESSAGE: {exc}")
             raise self._error_parser(applicant, exc)
 
         user_id = result.scalar_one()
@@ -57,7 +59,9 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             result = await self._session.execute(applicant_sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'create_applicant': {exc}")
+            logger.bind(
+                app_name=f"{ApplicantDAO.__name__} in {self.create_applicant.__name__}"
+            ).error(f"WITH DATA {applicant}\nMESSAGE: {exc}")
             raise self._error_parser(applicant, exc)
 
         applicant_id = result.scalar_one()
@@ -93,7 +97,9 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             await self._session.execute(sql)
 
         except IntegrityError as exc:
-            logger.info(f"EXCEPTION IN 'update_applicant': {exc}")
+            logger.bind(
+                app_name=f"{ApplicantDAO.__name__} in {self.update_applicant.__name__}"
+            ).error(f"WITH DATA {applicant}\nMESSAGE: {exc}")
             raise self._error_parser(applicant, exc)
 
     async def get_applicant_by_id(self, user_id: int) -> BaseApplicantDTODAO:

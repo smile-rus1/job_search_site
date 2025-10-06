@@ -31,7 +31,9 @@ class CreateResume(ResumeUseCase):
             await self._tm.commit()
 
         except ResumeException:
-            logger.error(f"EXCEPTION HAPPEN IN CREATE RESUME with dto {resume_dto}")
+            logger.bind(
+                app_name=f"{CreateResume.__name__}"
+            ).error(f"WITH DATA {resume_dto}")
             await self._tm.rollback()
             raise ResumeException()
 
@@ -49,7 +51,9 @@ class UpdateResume(ResumeUseCase):
             await self._tm.commit()
 
         except ResumeException:
-            logger.error(f"EXCEPTION HAPPEN IN UPDATE RESUME with dto {resume_dto}")
+            logger.bind(
+                app_name=f"{UpdateResume.__name__}"
+            ).error(f"WITH DATA {resume_dto}")
             await self._tm.rollback()
             raise ResumeException()
 
