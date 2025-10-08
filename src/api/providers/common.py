@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.providers.abstract.common import session_provider, redis_pool_provider, redis_db_provider
+from src.api.providers.build_files_manager import build_fm
 from src.core.config import Config
 from src.infrastructure.connections import get_db_connection, get_redis_connections
 from src.api.providers.build_transaction_manager import build_tm
@@ -43,6 +46,15 @@ def tm_getter(
     """
 
     return build_tm(session, redis_db)
+
+
+def fm_getter(config: Config):
+    def _build_fm():
+        return build_fm(
+            base_dir=Path(config.files_work.url_save_file),
+            chunk_size=config.files_work.chunk_size
+        )
+    return _build_fm
 
 
 def hasher_getter() -> Hasher:

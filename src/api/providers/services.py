@@ -1,10 +1,12 @@
 from fastapi import Depends
 
-from src.api.providers.abstract.common import tm_provider, hasher_provider
+from src.api.providers.abstract.common import tm_provider, hasher_provider, fm_provider
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.infrastructure.hasher import Hasher
 from src.services.applicant.applicant import ApplicantService
 from src.services.company.company import CompanyService
+from src.services.files_work.files_manager import FilesManager
+from src.services.files_work.files_work import FilesWorkService
 from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
@@ -49,3 +51,9 @@ def work_experience_getter(
         tm: IBaseTransactionManager = Depends(tm_provider)
 ):
     return WorkExperienceService(tm=tm)
+
+
+def files_work_service_getter(
+        fm: FilesManager = Depends(fm_provider)
+):
+    return FilesWorkService(fm)

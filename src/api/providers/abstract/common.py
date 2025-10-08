@@ -21,3 +21,8 @@ def tm_provider():
     raise NotImplementedError
 
 
+def fm_provider():
+    """
+    This is files manager provider
+    """
+    raise NotImplementedError

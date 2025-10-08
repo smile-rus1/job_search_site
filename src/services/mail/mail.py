@@ -1,3 +1,5 @@
+from smtplib import SMTPException
+
 from loguru import logger
 
 from src.infrastructure.mail.mailer import send_email
@@ -12,7 +14,13 @@ class EmailService:
             app_name=f"{EmailService.__name__} in {self.send_confirmation_email.__name__}"
         ).info(f"DATA: TO_EMAIL {to_email} | SUBJECT {subject} | BODY {body}")
 
-        send_email(to_email, subject, body)
+        try:
+            send_email(to_email, subject, body)
+
+        except SMTPException as exc:
+            logger.bind(
+                app_name=f"{EmailService.__name__} in {self.send_confirmation_email.__name__}"
+            ).info(f"EXCEPTION {exc}")
 
 
 def get_mail_service():

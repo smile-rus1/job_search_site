@@ -14,6 +14,7 @@ def bind_common(app: FastAPI, config: Config):
     app.dependency_overrides[abstract.common.redis_pool_provider] = common_provide.redis_pool_getter(config)
     app.dependency_overrides[abstract.common.hasher_provider] = common_provide.hasher_getter
     app.dependency_overrides[abstract.common.tm_provider] = common_provide.tm_getter
+    app.dependency_overrides[abstract.common.fm_provider] = common_provide.fm_getter(config)
     app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter
 
 
@@ -28,6 +29,7 @@ def bind_services(app: FastAPI):
     app.dependency_overrides[abstract.services.company_service_provider] = services.company_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.resume_service_provider] = services.resume_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.work_experience_service_provider] = services.work_experience_getter  # type: ignore
+    app.dependency_overrides[abstract.services.files_work_service_provider] = services.files_work_service_getter  # type: ignore
 
 
 def bind_middlewares(app: FastAPI):

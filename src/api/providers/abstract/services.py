@@ -20,3 +20,7 @@ def resume_service_provider():
 
 def work_experience_service_provider():
     raise NotImplementedError
+
+
+def files_work_service_provider():
+    raise NotImplementedError

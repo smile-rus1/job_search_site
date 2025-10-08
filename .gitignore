@@ -6,3 +6,4 @@ alembic.ini
 **/.pytest_cache
 src/infrastructure/db/migrations/versions
 src/core/logs/
+src/infrastructure/files_work/files/

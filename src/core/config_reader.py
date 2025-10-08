@@ -6,6 +6,7 @@ from src.api.auth_config import AuthConfig
 from src.core.config import Config
 from src.api.web_config import APIConfig
 from src.infrastructure.db_config import DBConfig
+from src.infrastructure.files_work.files_config import FilesWorkConfig
 from src.infrastructure.mail.config import MailConfig
 from src.infrastructure.redis_db.config import RedisConfig
 
@@ -46,6 +47,10 @@ def config_loader() -> Config:
             smtp_user=os.getenv("SMTP_USER"),
             smtp_password=os.getenv("SMTP_PASSWORD"),
             mail_from=os.getenv("MAIL_FROM")
+        ),
+        files_work=FilesWorkConfig(
+            url_save_file=os.getenv("URL_SAVE_FILE"),
+            chunk_size=int(os.getenv("CHUNK_SIZE"))
         )
     )
 
