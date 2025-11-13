@@ -2,9 +2,8 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.db.user.user import UpdateUserDTODAO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
-from src.dto.services.user.user import  UserDTO, UpdateUserDTO
+from src.dto.services.user.user import UserDTO, UpdateUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.exceptions.services.auth import InvalidEmail
 from src.interfaces.infrastructure.hasher import IHasher

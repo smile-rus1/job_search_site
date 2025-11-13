@@ -1,9 +1,10 @@
+from dataclasses import asdict
+
 from loguru import logger
 from sqlalchemy import insert, select, update, delete
 from sqlalchemy.exc import IntegrityError
 
-from src.dto.db.work_experience.work_experience import CreateWorkExperienceDTODAO, WorkExperienceDTODAO, \
-    UpdateWorkExperienceDTODAO
+from src.dto.db.work_experience.work_experience import BaseWorkExperienceDTODAO
 from src.exceptions.infrascructure import BaseWorkExperiencesException
 from src.exceptions.infrascructure.work_experiences.work_experiences import WorkExperiences, WorkExperiencesNotFoundByID
 from src.infrastructure.db.models import WorkExperienceDB, ResumeDB
@@ -12,11 +13,10 @@ from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 
 class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
-    async def create_work_experience(self, work_experience: CreateWorkExperienceDTODAO) -> WorkExperienceDTODAO:
+    async def create_work_experience(self, work_experience: BaseWorkExperienceDTODAO) -> BaseWorkExperienceDTODAO:
         sub_sql = (
             select(ResumeDB.resume_id)
             .where(
-                ResumeDB.applicant_id == work_experience.applicant_id,
                 ResumeDB.resume_id == work_experience.resume_id
             )
             .scalar_subquery()
@@ -42,7 +42,7 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
             ).error(f"WITH DATA {work_experience}\nMESSAGE: {exc}")
             raise self._error_parser()
 
-        return WorkExperienceDTODAO(
+        return BaseWorkExperienceDTODAO(
             resume_id=res.resume_id,
             work_experience_id=res.work_experience_id,
             description_work=res.description_work,
@@ -51,18 +51,16 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
             end_date=res.end_date,
         )
 
-    async def update_work_experience(self, work_experience: UpdateWorkExperienceDTODAO) -> None:
-        data_dict = work_experience.__dict__
-
-        update_values = {
-            k: v for k, v in data_dict.items()
-            if v is not None and k != "applicant_id" and k != "resume_id"
+    async def update_work_experience(self, work_experience: BaseWorkExperienceDTODAO) -> None:
+        data = asdict(work_experience)
+        print(data)
+        work_experience_fields = {
+            k: v for k, v in data.items() if v is not None and k not in {"work_experience_id"}
         }
 
         sub_sql = (
             select(ResumeDB.resume_id)
             .where(
-                ResumeDB.applicant_id == work_experience.applicant_id,
                 ResumeDB.resume_id == work_experience.resume_id
             )
             .scalar_subquery()
@@ -74,7 +72,7 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
                 WorkExperienceDB.work_experience_id == work_experience.work_experience_id,
                 WorkExperienceDB.resume_id == sub_sql
             )
-            .values(**update_values)
+            .values(**work_experience_fields)
         )
 
         try:
@@ -105,7 +103,7 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
         )
         await self._session.execute(sql)
 
-    async def get_work_experience_by_id(self, work_experience_id: int) -> WorkExperienceDTODAO:
+    async def get_work_experience_by_id(self, work_experience_id: int) -> BaseWorkExperienceDTODAO:
         sql = (
             select(
                 WorkExperienceDB.work_experience_id,
@@ -122,7 +120,7 @@ class WorkExperienceDAO(SqlAlchemyDAO, IWorkExperienceDAO):
         if res is None:
             raise WorkExperiencesNotFoundByID(work_experience_id)
 
-        return WorkExperienceDTODAO(
+        return BaseWorkExperienceDTODAO(
             resume_id=res.resume_id,
             work_experience_id=res.work_experience_id,
             description_work=res.description_work,

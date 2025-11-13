@@ -1,4 +1,3 @@
-from fastapi import Query
 from pydantic import BaseModel
 
 from src.infrastructure.enums import Currency, EmploymentType, GenderEnum

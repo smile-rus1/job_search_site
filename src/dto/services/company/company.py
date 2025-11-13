@@ -6,7 +6,11 @@ from src.dto.services.user.user import CreateUserDTO, UserOutDTO, BaseUserDTO
 
 @dataclass
 class BaseCompanyDTO(BaseDTO):
-    ...
+    user: BaseUserDTO
+    company_name: str | None = None
+    description_company: str | None = None
+    address: str | None = None
+    company_is_confirmed: bool | None = None
 
 
 @dataclass

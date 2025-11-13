@@ -14,15 +14,3 @@ class BaseApplicantDTODAO(BaseDTO):
     gender: GenderEnum | None = None
     level_education: EducationEnum | None = None
     date_born: date | None = None
-
-
-@dataclass
-class ApplicantDTODAO(BaseDTO):
-    applicant_id: int
-    user: BaseUserDTODAO
-    gender: GenderEnum
-    description_applicant: str | None = None
-    address: str | None = None
-    is_confirmed: bool | None = None
-    level_education: EducationEnum | None = None
-    date_born: date | None = None

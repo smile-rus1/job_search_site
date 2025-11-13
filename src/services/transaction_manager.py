@@ -6,6 +6,7 @@ from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
 from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
 from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
+from src.interfaces.infrastructure.dao.vacancy_dao import IVacancyDAO
 from src.interfaces.infrastructure.dao.workexperience_dao import IWorkExperienceDAO
 from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
@@ -32,6 +33,7 @@ class TransactionManager(BaseTransactionManager):
             company_dao: Type[ICompanyDAO],
             resume_dao: Type[IResumeDAO],
             work_experience: Type[IWorkExperienceDAO],
+            vacancy_dao: Type[IVacancyDAO]
     ):
         super().__init__(session=session)
         self.redis_db = redis_db
@@ -39,4 +41,5 @@ class TransactionManager(BaseTransactionManager):
         self.applicant_dao = applicant_dao(session=session)  # type: ignore
         self.company_dao = company_dao(session=session)  # type: ignore
         self.resume_dao = resume_dao(session=session)  # type: ignore
-        self.work_experience = work_experience(session=session)  # type: ignore
+        self.work_experience_dao = work_experience(session=session)  # type: ignore
+        self.vacancy_dao = vacancy_dao(session=session)  # type: ignore

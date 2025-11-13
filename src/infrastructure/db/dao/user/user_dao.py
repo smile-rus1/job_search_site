@@ -1,8 +1,8 @@
 from loguru import logger
-from sqlalchemy import insert, select, update
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
-from src.dto.db.user.user import CreateUserDTODAO, UserOutDTODAO, BaseUserDTODAO, UpdateUserDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail, BaseUserException
 
@@ -34,7 +34,7 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
             type=result.type
         )
 
-    async def update_user(self, user: UpdateUserDTODAO) -> None:
+    async def update_user(self, user: BaseUserDTODAO) -> None:
         data_dict = user.__dict__
 
         update_values = {
@@ -80,7 +80,7 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
 
     @staticmethod
     def _error_parser(
-            user: CreateUserDTODAO | UpdateUserDTODAO | BaseUserDTODAO,
+            user: BaseUserDTODAO,
             exc: IntegrityError
     ) -> BaseExceptions:
         database_column = exc.__cause__.__cause__.constraint_name  # type: ignore

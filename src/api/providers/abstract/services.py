@@ -24,3 +24,7 @@ def work_experience_service_provider():
 
 def files_work_service_provider():
     raise NotImplementedError
+
+
+def vacancy_service_provider():
+    raise NotImplementedError

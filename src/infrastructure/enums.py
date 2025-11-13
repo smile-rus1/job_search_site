@@ -31,9 +31,32 @@ class EmploymentType(enum.Enum):
     FREELANCE = "freelance"
 
 
+class WorkScheduleType(enum.Enum):
+    ONE_BY_ONE = "1/1"
+    ONE_BY_TWO = "1/2"
+    TWO_BY_TWO = "2/2"
+    THREE_BY_TWO = "3/2"
+    THREE_BY_THREE = "3/3"
+    FOUR_BY_TWO = "4/2"
+    FOUR_BY_THREE = "4/3"
+    FOUR_BY_FOUR = "4/4"
+    FIVE_BY_TWO = "5/2"
+    SIX_BY_ONE = "6/1"
+    ON_WEEKENDS = "on weekends"
+    FLEXIBLE = "flexible schedule"
+    OTHER = "other schedule"
+
+
 class Currency(enum.Enum):
     USD = "USD"
     EUR = "EUR"
     RUB = "RUB"
     BYN = "BYN"
 
+
+class VacancyDuration(enum.Enum):
+    WEEK = "7"
+    TWO_WEEKS = "14"
+    MONTH = "30"
+    THREE_MONTH = "90"
+    SIX_MONTH = "180"

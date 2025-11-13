@@ -17,4 +17,5 @@ def build_tm(
         company_dao=dao.CompanyDAO,
         resume_dao=dao.ResumeDAO,
         work_experience=dao.WorkExperienceDAO,
+        vacancy_dao=dao.VacancyDAO
     )

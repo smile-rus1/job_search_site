@@ -14,11 +14,11 @@ class ResumeException(BaseResumeException):
 
 
 @dataclass
-class UserIDException(BaseResumeException):
+class ResumeIDException(BaseResumeException):
     resume_id: int
 
 
 @dataclass
-class ResumeNotFoundByID(UserIDException):
+class ResumeNotFoundByID(ResumeIDException):
     def message(self):
-        return f"User with {self.resume_id} id not found!"
+        return f"Resume with id {self.resume_id} not found!"

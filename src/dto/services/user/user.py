@@ -6,7 +6,8 @@ from src.dto.base_dto import BaseDTO
 
 @dataclass
 class BaseUserDTO(BaseDTO):
-    first_name: str
+    user_id: int | None = None
+    first_name: str | None = None
     last_name: str = None
     email: str = None
     created_at: datetime | None = None

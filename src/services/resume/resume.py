@@ -2,7 +2,9 @@ from abc import ABC
 
 from loguru import logger
 
-from src.dto.db.resume.resume import CreateResumeDTODAO, UpdateResumeDTODAO, SearchDTODAO
+from src.dto.db.applicant.applicant import BaseApplicantDTODAO
+from src.dto.db.resume.resume import BaseResumeDTODAO, SearchDTODAO
+from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.services.applicant.applicant import ApplicantDTO
 from src.dto.services.resume.resume import (
     CreateResumeDTO,
@@ -25,7 +27,21 @@ class ResumeUseCase(ABC):
 
 class CreateResume(ResumeUseCase):
     async def __call__(self, resume_dto: CreateResumeDTO) -> ResumeOutDTO:
-        resume = CreateResumeDTODAO(**resume_dto.__dict__)
+        resume = BaseResumeDTODAO(
+            applicant=BaseApplicantDTODAO(
+                user=BaseUserDTODAO(
+                    user_id=resume_dto.applicant_id
+                ),
+            ),
+            name_resume=resume_dto.name_resume,
+            key_skills=resume_dto.key_skills,
+            profession=resume_dto.profession,
+            salary_min=resume_dto.salary_min,
+            salary_max=resume_dto.salary_max,
+            salary_currency=resume_dto.salary_currency,
+            location=resume_dto.location,
+            type_of_employment=resume_dto.type_of_employment,
+        )
         try:
             resume_created = await self._tm.resume_dao.create_resume(resume)
             await self._tm.commit()
@@ -38,13 +54,38 @@ class CreateResume(ResumeUseCase):
             raise ResumeException()
 
         return ResumeOutDTO(
-            **resume_created.__dict__
+            resume_id=resume_created.resume_id,
+            name_resume=resume_created.name_resume,
+            key_skills=resume_created.key_skills,
+            profession=resume_created.profession,
+            salary_min=resume_created.salary_min,
+            salary_max=resume_created.salary_max,
+            salary_currency=resume_created.salary_currency,
+            is_published=resume_created.is_published,
+            location=resume_created.location,
+            updated_at=resume_created.updated_at,
+            type_of_employment=resume_created.type_of_employment
         )
 
 
 class UpdateResume(ResumeUseCase):
     async def __call__(self, resume_dto: UpdateResumeDTO) -> None:
-        resume = UpdateResumeDTODAO(**resume_dto.__dict__)
+        resume = BaseResumeDTODAO(
+            applicant=BaseApplicantDTODAO(
+                user=BaseUserDTODAO(
+                    user_id=resume_dto.applicant_id
+                ),
+            ),
+            resume_id=resume_dto.resume_id,
+            name_resume=resume_dto.name_resume,
+            key_skills=resume_dto.key_skills,
+            profession=resume_dto.profession,
+            salary_min=resume_dto.salary_min,
+            salary_max=resume_dto.salary_max,
+            salary_currency=resume_dto.salary_currency,
+            location=resume_dto.location,
+            type_of_employment=resume_dto.type_of_employment,
+        )
 
         try:
             await self._tm.resume_dao.update_resume(resume)
@@ -72,11 +113,11 @@ class GetResumeByID(ResumeUseCase):
             location=resume.location,
             type_of_employment=resume.type_of_employment,
             applicant=ApplicantDTO(
-                applicant_id=resume.applicant.applicant_id,
+                applicant_id=resume.applicant.user.user_id,
                 gender=resume.applicant.gender,
                 description_applicant=resume.applicant.description_applicant,
                 address=resume.applicant.address,
-                is_confirmed=resume.applicant.is_confirmed,
+                is_confirmed=resume.applicant.user.is_confirmed,
                 level_education=resume.applicant.level_education,
                 user=BaseUserDTO(
                     email=resume.applicant.user.email,
@@ -95,7 +136,7 @@ class GetResumeByID(ResumeUseCase):
                     end_date=we.end_date,
                     description_work=we.description_work,
                 )
-                for we in resume.work_experience
+                for we in resume.work_experiences
             ]
         )
 
@@ -108,7 +149,7 @@ class SearchResumes(ResumeUseCase):
 
         for r in resumes:
             applicant_dto = ApplicantDTO(
-                applicant_id=r.applicant.applicant_id,
+                applicant_id=r.applicant.user.user_id,
                 address=r.applicant.address,
                 level_education=r.applicant.level_education,
                 date_born=r.applicant.date_born,

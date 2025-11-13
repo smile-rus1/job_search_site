@@ -1,5 +1,5 @@
 from sqlalchemy import String, Boolean, Integer, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infrastructure.db import models
 
@@ -18,6 +18,11 @@ class CompanyDB(models.UserDB):
     company_is_confirmed: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=True)
     # тут мб сделать, чтобы ещё были как-бы менеджеры или что-то типо такого 1:M (1 компания: Много менеджеров)
     # managers: Mapped["ManagerDB"] = relastionship()
+
+    vacancies: Mapped[list["VacancyDB"]] = relationship(  # type: ignore
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": "company"

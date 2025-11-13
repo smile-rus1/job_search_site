@@ -10,6 +10,7 @@ from src.services.files_work.files_work import FilesWorkService
 from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
+from src.services.vacancy.vacancy import VacancyService
 from src.services.work_experience.work_experience import WorkExperienceService
 
 
@@ -57,3 +58,9 @@ def files_work_service_getter(
         fm: FilesManager = Depends(fm_provider)
 ):
     return FilesWorkService(fm)
+
+
+def vacancy_service_getter(
+        tm: IBaseTransactionManager = Depends(tm_provider)
+):
+    return VacancyService(tm=tm)

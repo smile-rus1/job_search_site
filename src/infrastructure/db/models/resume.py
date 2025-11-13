@@ -2,10 +2,10 @@ from __future__ import annotations
 from datetime import datetime, date
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, Date, Enum, Numeric, DateTime, func
+from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, Date, Numeric, DateTime, func
 from sqlalchemy.dialects.postgresql import ARRAY
 from src.infrastructure.db.models.base import Base
-from src.infrastructure.enums import EmploymentType, Currency
+from src.infrastructure.enums_db import CurrencyEnumDB, EmploymentTypeEnumDB
 
 
 class ResumeDB(Base):
@@ -17,7 +17,7 @@ class ResumeDB(Base):
     profession: Mapped[str] = mapped_column(String(30), nullable=False)
     salary_min: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
     salary_max: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
-    salary_currency: Mapped[Currency] = mapped_column(Enum(Currency), nullable=True)
+    salary_currency: Mapped[CurrencyEnumDB] = mapped_column(CurrencyEnumDB, nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
     location: Mapped[str] = mapped_column(String(150), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
@@ -32,8 +32,8 @@ class ResumeDB(Base):
     )
     applicant: Mapped["ApplicantDB"] = relationship(back_populates="resumes")  # type: ignore
 
-    type_of_employment: Mapped[list[EmploymentType]] = mapped_column(
-        ARRAY(Enum(EmploymentType, name="employment_type")),
+    type_of_employment: Mapped[list[EmploymentTypeEnumDB]] = mapped_column(
+        ARRAY(EmploymentTypeEnumDB),
         nullable=True
     )
 

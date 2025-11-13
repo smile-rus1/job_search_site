@@ -8,6 +8,7 @@ class CompanyOut(BaseModel):
     company_name: str
     address: str | None
     description_company: str | None
+    company_is_confirmed: bool | None
 
 
 class CompanyDataResponse(BaseModel):

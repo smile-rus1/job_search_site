@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import date
 
 from loguru import logger
@@ -6,17 +7,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, joinedload, contains_eager
 
-from src.dto.db.applicant.applicant import ApplicantDTODAO
+from src.dto.db.applicant.applicant import BaseApplicantDTODAO
 from src.dto.db.resume.resume import (
-    CreateResumeDTODAO,
     BaseResumeDTODAO,
-    UpdateResumeDTODAO,
-    ResumeDTODAO,
-    SearchDTODAO,
-    ResumeSearchOutDTODAO
+    SearchDTODAO
 )
 from src.dto.db.user.user import BaseUserDTODAO
-from src.dto.db.work_experience.work_experience import WorkExperienceDTODAO
+from src.dto.db.work_experience.work_experience import BaseWorkExperienceDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.resume.resume import ResumeException, ResumeNotFoundByID
 from src.infrastructure.db.models import ResumeDB, ApplicantDB, WorkExperienceDB, UserDB
@@ -30,12 +27,12 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
         super().__init__(session)
         self._query_builder = ResumeQueryBuilder()
 
-    async def create_resume(self, resume: CreateResumeDTODAO) -> BaseResumeDTODAO:
+    async def create_resume(self, resume: BaseResumeDTODAO) -> BaseResumeDTODAO:
         sql = (
             insert(ResumeDB)
             .values(
                 name_resume=resume.name_resume,
-                applicant_id=resume.applicant_id,
+                applicant_id=resume.applicant.user.user_id,
                 key_skills=resume.key_skills,
                 profession=resume.profession,
                 salary_min=resume.salary_min,
@@ -57,6 +54,11 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
 
         model = result.scalar_one()
         return BaseResumeDTODAO(
+            applicant=BaseApplicantDTODAO(
+                user=BaseUserDTODAO(
+                    user_id=resume.applicant.user.user_id
+                )
+            ),
             resume_id=model.resume_id,
             name_resume=model.name_resume,
             key_skills=model.key_skills,
@@ -70,21 +72,17 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
             type_of_employment=model.type_of_employment,
         )
 
-    async def update_resume(self, resume: UpdateResumeDTODAO) -> None:
-        data_dict = resume.__dict__
-
-        update_values = {
-            k: v for k, v in data_dict.items()
-            if v is not None and k != "applicant_id" and k != "resume_id"
-        }
+    async def update_resume(self, resume: BaseResumeDTODAO) -> None:
+        data = asdict(resume)
+        resume_fields = {k: v for k, v in data.items() if v is not None and k not in {"resume_id"}}
 
         sql = (
             update(ResumeDB)
             .where(
                 ResumeDB.resume_id == resume.resume_id,
-                ResumeDB.applicant_id == resume.applicant_id
+                ResumeDB.applicant_id == resume.applicant.user.user_id
             )
-            .values(**update_values)
+            .values(**resume_fields)
         )
 
         try:
@@ -96,7 +94,7 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
             ).error(f"WITH DATA {resume}\nMESSAGE: {exc}")
             raise self._error_parser()
 
-    async def get_resume_by_id(self, resume_id: int) -> ResumeDTODAO:
+    async def get_resume_by_id(self, resume_id: int) -> BaseResumeDTODAO:
         sql = (
             select(ResumeDB)
             .options(
@@ -148,7 +146,7 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
         if resume is None:
             raise ResumeNotFoundByID(resume_id)
 
-        return ResumeDTODAO(
+        return BaseResumeDTODAO(
             resume_id=resume.resume_id,
             name_resume=resume.name_resume,
             profession=resume.profession,
@@ -158,23 +156,23 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
             salary_currency=resume.salary_currency,
             location=resume.location,
             type_of_employment=resume.type_of_employment,
-            applicant=ApplicantDTODAO(
-                applicant_id=resume.applicant.applicant_id,
+            applicant=BaseApplicantDTODAO(
                 gender=resume.applicant.gender,
                 description_applicant=resume.applicant.description_applicant,
                 address=resume.applicant.address,
-                is_confirmed=resume.applicant.is_confirmed,
                 level_education=resume.applicant.level_education,
                 user=BaseUserDTODAO(
+                    user_id=resume.applicant.applicant_id,
                     email=resume.applicant.email,
                     first_name=resume.applicant.first_name,
                     last_name=resume.applicant.last_name,
                     phone_number=resume.applicant.phone_number,
-                    image_url=resume.applicant.image_url
+                    image_url=resume.applicant.image_url,
+                    is_confirmed=resume.applicant.is_confirmed
                 )
             ),
-            work_experience=[
-                WorkExperienceDTODAO(
+            work_experiences=[
+                BaseWorkExperienceDTODAO(
                     work_experience_id=we.work_experience_id,
                     resume_id=we.resume_id,
                     company_name=we.company_name,
@@ -196,7 +194,7 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
         )
         await self._session.execute(sql)
 
-    async def search_resumes(self, search_dto: SearchDTODAO) -> list[ResumeSearchOutDTODAO]:
+    async def search_resumes(self, search_dto: SearchDTODAO) -> list[BaseResumeDTODAO]:
         sql = self._query_builder.get_query(
             name_resume=search_dto.name_resume,
             location=search_dto.location,
@@ -217,10 +215,10 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
         result = await self._session.execute(sql)
         models = result.unique().all()
 
-        dtos: list[ResumeSearchOutDTODAO] = []
+        dtos: list[BaseResumeDTODAO] = []
         for resume, total_months in models:
             applicant = resume.applicant  # That ApplicatDB joined with UserDB
-            dto = ResumeSearchOutDTODAO(
+            dto = BaseResumeDTODAO(
                 resume_id=resume.resume_id,
                 name_resume=resume.name_resume,
                 profession=resume.profession,
@@ -231,24 +229,24 @@ class ResumeDAO(SqlAlchemyDAO, IResumeDAO):
                 location=resume.location,
                 type_of_employment=resume.type_of_employment,
                 total_months=total_months,
-                applicant=ApplicantDTODAO(
-                    applicant_id=applicant.applicant_id,
+                applicant=BaseApplicantDTODAO(
                     description_applicant=applicant.description_applicant,
                     address=applicant.address,
                     level_education=applicant.level_education,
                     gender=applicant.gender,
-                    is_confirmed=applicant.is_confirmed,
                     date_born=applicant.date_born,
                     user=BaseUserDTODAO(
+                        user_id=applicant.applicant_id,
                         email=applicant.email,
                         first_name=applicant.first_name,
                         last_name=applicant.last_name,
                         phone_number=applicant.phone_number,
                         image_url=applicant.image_url,
+                        is_confirmed=applicant.is_confirmed
                     )
                 ),
                 work_experiences=[
-                    WorkExperienceDTODAO(
+                    BaseWorkExperienceDTODAO(
                         work_experience_id=w.work_experience_id,
                         resume_id=w.resume_id,
                         company_name=w.company_name,

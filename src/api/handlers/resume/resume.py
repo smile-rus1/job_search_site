@@ -24,7 +24,7 @@ resume_router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     response_model=ResumeOutResponse,
     responses={
-        202: {"description": "Resume was created"},
+        201: {"description": "Resume was created"},
         403: {"description": "Applicant access required"},
         500: {"description": "Internal Server Error"}
     }
@@ -128,7 +128,7 @@ async def get_resume_by_id(
 
 
 @resume_router.get(
-    "",
+    "/search",
     status_code=status.HTTP_200_OK,
     response_model=list[ResumeSearchOutResponse],
     responses={

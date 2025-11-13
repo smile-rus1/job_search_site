@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from src.api.middleware.auth import AuthenticationMiddleware
 from src.api.providers import abstract
@@ -30,10 +31,18 @@ def bind_services(app: FastAPI):
     app.dependency_overrides[abstract.services.resume_service_provider] = services.resume_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.work_experience_service_provider] = services.work_experience_getter  # type: ignore
     app.dependency_overrides[abstract.services.files_work_service_provider] = services.files_work_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.vacancy_service_provider] = services.vacancy_service_getter  # type: ignore
 
 
 def bind_middlewares(app: FastAPI):
     app.add_middleware(AuthenticationMiddleware)  # type: ignore
+    app.add_middleware(
+        CORSMiddleware,  # type: ignore
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 def bind_providers(app: FastAPI, config: Config):

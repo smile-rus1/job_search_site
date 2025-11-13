@@ -8,7 +8,8 @@ from src.api.handlers import (
     applicant_router,
     company_router,
     resume_router,
-    work_experience_router
+    work_experience_router,
+    vacancy_router
 )
 
 from src.api.handlers.exceptions import (
@@ -18,7 +19,9 @@ from src.api.handlers.exceptions import (
     user_exception_handler,
     applicant_exception_handler,
     company_exception_handler,
-    resume_exception_handler, work_experience_exception_handler,
+    resume_exception_handler,
+    work_experience_exception_handler,
+    vacancy_exception_handler,
 )
 
 from src.api.web_config import APIConfig
@@ -28,6 +31,7 @@ from src.exceptions.infrascructure import (
     BaseResumeException, BaseWorkExperiencesException
 )
 from src.exceptions.infrascructure.company.company import BaseCompanyException
+from src.exceptions.infrascructure.vacancy.vacancy import BaseVacancyException
 from src.exceptions.services.auth import AuthException
 
 
@@ -44,6 +48,7 @@ def bind_exceptions_handlers(app: FastAPI):
     app.add_exception_handler(BaseCompanyException, company_exception_handler)
     app.add_exception_handler(BaseResumeException, resume_exception_handler)
     app.add_exception_handler(BaseWorkExperiencesException, work_experience_exception_handler)
+    app.add_exception_handler(BaseVacancyException, vacancy_exception_handler)
 
 
 def bind_routers():
@@ -54,6 +59,7 @@ def bind_routers():
     api_routers.include_router(company_router)
     api_routers.include_router(resume_router)
     api_routers.include_router(work_experience_router)
+    api_routers.include_router(vacancy_router)
 
     return api_routers
 
