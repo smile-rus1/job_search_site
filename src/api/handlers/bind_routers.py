@@ -36,19 +36,19 @@ from src.exceptions.services.auth import AuthException
 
 
 def bind_exceptions_handlers(app: FastAPI):
-    app.add_exception_handler(AuthException, auth_exception_handler)
-    app.add_exception_handler(ValidationError, validation_exception_handler)
-    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+    app.add_exception_handler(AuthException, auth_exception_handler)  # type: ignore
+    app.add_exception_handler(ValidationError, validation_exception_handler)  # type: ignore
+    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)  # type: ignore
 
     """
     Подправить те, которые идут снизу, чтобы не из инфры были exceptions, а из сервисов!
     """
-    app.add_exception_handler(BaseUserException, user_exception_handler)
-    app.add_exception_handler(BaseApplicantException, applicant_exception_handler)
-    app.add_exception_handler(BaseCompanyException, company_exception_handler)
-    app.add_exception_handler(BaseResumeException, resume_exception_handler)
-    app.add_exception_handler(BaseWorkExperiencesException, work_experience_exception_handler)
-    app.add_exception_handler(BaseVacancyException, vacancy_exception_handler)
+    app.add_exception_handler(BaseUserException, user_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseApplicantException, applicant_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseCompanyException, company_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseResumeException, resume_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseWorkExperiencesException, work_experience_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseVacancyException, vacancy_exception_handler)  # type: ignore
 
 
 def bind_routers():

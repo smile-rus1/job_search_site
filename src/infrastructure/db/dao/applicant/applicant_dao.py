@@ -19,7 +19,7 @@ from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
     async def create_applicant(self, applicant: BaseApplicantDTODAO) -> BaseApplicantDTODAO:
         user_sql = (
-            insert(UserDB.__table__)
+            insert(UserDB.__table__)  # type: ignore
             .values(
                 email=applicant.user.email,
                 password=applicant.user.password,
@@ -44,7 +44,7 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
         user_id = result.scalar_one()
 
         applicant_sql = (
-            insert(ApplicantDB.__table__)
+            insert(ApplicantDB.__table__)  # type: ignore
             .values(
                 applicant_id=user_id,
                 description_applicant=applicant.description_applicant,

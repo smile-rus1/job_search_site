@@ -7,3 +7,4 @@ alembic.ini
 src/infrastructure/db/migrations/versions
 src/core/logs/
 src/infrastructure/files_work/files/
+qodana.yaml

@@ -6,8 +6,7 @@ from src.api.providers import abstract
 
 from src.core.config import Config
 from src.api.providers import common as common_provide
-from src.api.providers import auth, services
-from src.infrastructure.auth import jwt
+from src.api.providers import services
 
 
 def bind_common(app: FastAPI, config: Config):
@@ -19,8 +18,8 @@ def bind_common(app: FastAPI, config: Config):
     app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter
 
 
-def bind_auth(app: FastAPI):
-    ...
+# def bind_auth(app: FastAPI):
+#     ...
 
 
 def bind_services(app: FastAPI):
@@ -48,5 +47,5 @@ def bind_middlewares(app: FastAPI):
 def bind_providers(app: FastAPI, config: Config):
     bind_common(app, config)
     bind_middlewares(app)
-    bind_auth(app)
+    # bind_auth(app)
     bind_services(app)
