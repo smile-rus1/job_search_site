@@ -6,7 +6,7 @@ from src.dto.db.user.user import BaseUserDTODAO
 
 @dataclass
 class BaseCompanyDTODAO(BaseDTO):
-    user: BaseUserDTODAO
+    user: BaseUserDTODAO | None
     company_name: str | None = None
     description_company: str | None = None
     address: str | None = None

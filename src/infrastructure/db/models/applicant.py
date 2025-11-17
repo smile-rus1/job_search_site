@@ -27,6 +27,10 @@ class ApplicantDB(UserDB):
         back_populates="applicant",
         cascade="all, delete-orphan"
     )
+    liked: Mapped["LikedVacancy"] = relationship(  # type: ignore
+        back_populates="applicant",
+        cascade="all, delete-orphan"
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": "applicant"

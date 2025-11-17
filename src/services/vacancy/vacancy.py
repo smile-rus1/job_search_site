@@ -4,14 +4,26 @@ from loguru import logger
 
 from src.dto.db.company.company import BaseCompanyDTODAO
 from src.dto.db.user.user import BaseUserDTODAO
-from src.dto.db.vacancy.vacancy import BaseVacancyDTODAO, BaseVacancyTypeDTODAO, BaseVacancyTypePriceDTODAO
+from src.dto.db.vacancy.vacancy import (
+    BaseVacancyDTODAO,
+    BaseVacancyTypeDTODAO,
+    BaseVacancyTypePriceDTODAO
+)
 from src.dto.services.company.company import BaseCompanyDTO
 from src.dto.services.user.user import BaseUserDTO
-from src.dto.services.vacancy.vacancy import CreateVacancyDTO, VacancyOutDTO, UpdateVacancyDTO, BaseVacancyDTO
+from src.dto.services.vacancy.vacancy import (
+    CreateVacancyDTO,
+    VacancyOutDTO,
+    UpdateVacancyDTO,
+    BaseVacancyDTO
+)
 from src.dto.services.vacancy.vacancy_access import BaseVacancyAccessDTO
 from src.dto.services.vacancy.vacancy_type import BaseVacancyTypeDTO
-from src.exceptions.infrascructure.vacancy.vacancy import BaseVacancyException, VacancyNotFoundByID, \
+from src.exceptions.infrascructure.vacancy.vacancy import (
+    BaseVacancyException,
+    VacancyNotFoundByID,
     NotUpdatedTimeVacancy
+)
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
@@ -182,7 +194,61 @@ class RaiseVacancyInSearch(VacancyUseCase):
             return res
 
         except (NotUpdatedTimeVacancy, BaseVacancyException) as exc:
+            logger.bind(
+                app_name=f"{RaiseVacancyInSearch.__name__}"
+            ).error(f"WITH ID {vacancy_id}\nEXCEPTION {exc.message()}")
             raise exc
+
+
+class LikeVacancyByApplicant(VacancyUseCase):
+    async def __call__(self, vacancy_id: int, applicant_id: int) -> None:
+        try:
+            await self._tm.vacancy_dao.like_vacancy_by_applicant(vacancy_id, applicant_id)
+            await self._tm.commit()
+
+        except VacancyNotFoundByID as exc:
+            logger.bind(
+                app_name=f"{LikeVacancyByApplicant.__name__}"
+            ).error(f"WITH ID {vacancy_id}\nEXCEPTION {exc.message()}")
+            await self._tm.rollback()
+            raise exc
+
+
+class DislikeVacancyByApplicant(VacancyUseCase):
+    async def __call__(self, vacancy_id: int, applicant_id: int) -> None:
+        try:
+            await self._tm.vacancy_dao.dislike_vacancy_by_applicant(vacancy_id, applicant_id)
+            await self._tm.commit()
+
+        except VacancyNotFoundByID as exc:
+            logger.bind(
+                app_name=f"{DislikeVacancyByApplicant.__name__}"
+            ).error(f"WITH ID {vacancy_id}\nEXCEPTION {exc.message()}")
+            await self._tm.rollback()
+            raise exc
+
+
+class GetAllLikedVacanciesByApplicant(VacancyUseCase):
+    async def __call__(self, applicant_id: int) -> list[BaseVacancyDTO]:
+        res = await self._tm.vacancy_dao.get_all_liked_vacancy(applicant_id)
+
+        return [
+            BaseVacancyDTO(
+                company=BaseCompanyDTO(
+                    user=BaseUserDTO(
+                        user_id=vacancy.company.user.user_id
+                    ),
+                    company_name=vacancy.company.company_name,
+                    address=vacancy.company.address,
+                ),
+                vacancy_id=vacancy.vacancy_id,
+                title=vacancy.title,
+                experience_start=vacancy.experience_start,
+                experience_end=vacancy.experience_end,
+                is_published=vacancy.is_published
+            )
+            for vacancy in res
+        ]
 
 
 class VacancyService:
@@ -217,3 +283,12 @@ class VacancyService:
         Raise vacancy to top in search
         """
         return await RaiseVacancyInSearch(self._tm)(vacancy_id, company_id)
+
+    async def like_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        await LikeVacancyByApplicant(self._tm)(vacancy_id, applicant_id)
+
+    async def dislike_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        await DislikeVacancyByApplicant(self._tm)(vacancy_id, applicant_id)
+
+    async def get_all_liked_vacancies_by_applicant(self, applicant_id: int) -> list[BaseVacancyDTO]:
+        return await GetAllLikedVacanciesByApplicant(self._tm)(applicant_id)

@@ -37,3 +37,11 @@ class NotUpdatedTimeVacancy(BaseVacancyException):
 
     def message(self):
         return f"The vacancy {self.name} can be updated in {self.time_to_update} hours"
+
+
+@dataclass
+class VacancyAlreadyInLiked(BaseVacancyException):
+    vacancy_id: int
+
+    def message(self):
+        return f"Vacancy with id {self.vacancy_id} already in liked"

@@ -19,3 +19,12 @@ class IVacancyDAO:
 
     async def raise_vacancy_in_search(self, vacancy_id: int, company_id: int) -> dict:
         raise NotImplementedError
+
+    async def like_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        raise NotImplementedError
+
+    async def dislike_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        raise NotImplementedError
+
+    async def get_all_liked_vacancy(self, applicant_id: int) -> list[BaseVacancyDTODAO]:
+        ...

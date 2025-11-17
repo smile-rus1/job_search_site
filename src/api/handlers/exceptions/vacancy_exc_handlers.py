@@ -6,7 +6,8 @@ from src.exceptions.infrascructure.vacancy.vacancy import (
     VacancyException,
     VacancyTypeException,
     VacancyNotFoundByID,
-    NotUpdatedTimeVacancy
+    NotUpdatedTimeVacancy,
+    VacancyAlreadyInLiked
 )
 
 
@@ -22,6 +23,9 @@ def vacancy_exception_handler(_, exc: BaseVacancyException):
             return JSONResponse(status_code=404, content={"message": exc.message()})
 
         case NotUpdatedTimeVacancy():
+            return JSONResponse(status_code=400, content={"message": exc.message()})
+
+        case VacancyAlreadyInLiked():
             return JSONResponse(status_code=400, content={"message": exc.message()})
 
         case BaseVacancyException():

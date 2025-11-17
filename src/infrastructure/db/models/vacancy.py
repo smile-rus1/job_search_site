@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, Numeric, DateTime, func
+from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, Numeric, DateTime, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY
 from src.infrastructure.db.models.base import Base
 from src.infrastructure.enums import Currency
@@ -63,6 +63,7 @@ class VacancyDB(Base):
         nullable=False
     )
     vacancy_type: Mapped["VacancyTypeDB"] = relationship(back_populates="vacancy")
+    liked: Mapped["LikedVacancy"] = relationship(back_populates="vacancy")
 
 
 class VacancyAccessDB(Base):
@@ -102,3 +103,23 @@ class VacancyTypePriceDB(Base):
         nullable=False
     )
     vacancy_type: Mapped["VacancyTypeDB"] = relationship(back_populates="prices")
+
+
+class LikedVacancy(Base):
+    __tablename__ = "liked_vacancies"
+
+    liked_vacancies_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    vacancy_id: Mapped[int] = mapped_column(
+        ForeignKey("vacancies.vacancy_id", ondelete="CASCADE")
+    )
+    applicant_id: Mapped[int] = mapped_column(
+        ForeignKey("applicants.applicant_id", ondelete="CASCADE")
+    )
+
+    vacancy: Mapped["VacancyDB"] = relationship(back_populates="liked")
+    applicant: Mapped["ApplicantDB"] = relationship(back_populates="liked")  # type: ignore
+
+    __table_args__ = (
+        UniqueConstraint("applicant_id", "vacancy_id", name="uq_applicant_id_vacancy"),
+    )

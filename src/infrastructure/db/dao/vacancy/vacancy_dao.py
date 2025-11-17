@@ -13,13 +13,14 @@ from src.exceptions.infrascructure.vacancy.vacancy import (
     BaseVacancyException,
     VacancyException,
     VacancyTypeException,
-    VacancyNotFoundByID, NotUpdatedTimeVacancy
+    VacancyNotFoundByID, NotUpdatedTimeVacancy, VacancyAlreadyInLiked
 )
 from src.infrastructure.db.models import (
     VacancyDB,
     VacancyTypeDB,
     VacancyAccessDB, CompanyDB, UserDB
 )
+from src.infrastructure.db.models.vacancy import LikedVacancy
 from src.infrastructure.enums import VacancyDuration
 from src.interfaces.infrastructure.dao.vacancy_dao import IVacancyDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
@@ -312,13 +313,89 @@ class VacancyDAO(SqlAlchemyDAO, IVacancyDAO):
             "next_time_update": next_update_time
         }
 
+    async def like_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        sql = (
+            insert(LikedVacancy)
+            .values(
+                vacancy_id=vacancy_id,
+                applicant_id=applicant_id
+            )
+        )
+
+        try:
+            await self._session.execute(sql)
+
+        except IntegrityError as exc:
+            logger.bind(
+                app_name=f"{VacancyDAO.__name__} in {self.like_vacancy_by_applicant.__name__}"
+            ).error(f"EXCEPTION IN LIKE VACANCY: {exc}")
+            raise self._error_parser(None, exc, vacancy_id=vacancy_id)
+
+    async def dislike_vacancy_by_applicant(self, vacancy_id: int, applicant_id: int) -> None:
+        sql = (
+            delete(LikedVacancy)
+            .where(
+                LikedVacancy.vacancy_id == vacancy_id,
+                LikedVacancy.applicant_id == applicant_id
+            )
+        )
+        res = (await self._session.execute(sql)).rowcount
+        if res == 0:
+            logger.bind(
+                app_name=f"{VacancyDAO.__name__} in {self.like_vacancy_by_applicant.__name__}"
+            ).error(f"EXCEPTION IN DISLIKE VACANCY")
+            raise VacancyNotFoundByID(vacancy_id)
+
+    async def get_all_liked_vacancy(self, applicant_id: int) -> list[BaseVacancyDTODAO]:
+        sql = (
+            select(
+                VacancyDB.vacancy_id,
+                VacancyDB.title,
+                VacancyDB.company_id,
+                CompanyDB.company_name,
+                CompanyDB.address,
+                VacancyDB.is_published,
+                VacancyDB.experience_start,
+                VacancyDB.experience_end,
+                LikedVacancy.applicant_id,
+            )
+            .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
+            .join(LikedVacancy, LikedVacancy.vacancy_id == VacancyDB.vacancy_id)
+            .where(LikedVacancy.applicant_id == applicant_id)
+        )
+        res = (await self._session.execute(sql)).all()
+        return [
+            BaseVacancyDTODAO(
+                company=BaseCompanyDTODAO(
+                    user=BaseUserDTODAO(
+                        user_id=vacancy.company_id
+                    ),
+                    company_name=vacancy.company_name,
+                    address=vacancy.address
+                ),
+                vacancy_id=vacancy.vacancy_id,
+                title=vacancy.title,
+                experience_start=vacancy.experience_start,
+                experience_end=vacancy.experience_end,
+                is_published=vacancy.is_published
+            )
+            for vacancy in res
+        ]
+
     @staticmethod
     def _error_parser(
-            vacancy: BaseVacancyDTODAO,
-            exc: IntegrityError
+            vacancy: BaseVacancyDTODAO | None,
+            exc: IntegrityError,
+            **kwargs
     ) -> BaseVacancyException:
         error_text = str(exc.orig)
         if "vacancy_type_id" in error_text and "null value" in error_text.lower():
             return VacancyTypeException(name=vacancy.vacancy_type.name)
+
+        if "uq_applicant_id_vacancy" in error_text:
+            return VacancyAlreadyInLiked(kwargs.get("vacancy_id"))
+
+        if "is not present in table" in error_text:
+            return VacancyNotFoundByID(kwargs.get("vacancy_id"))
 
         return VacancyException()

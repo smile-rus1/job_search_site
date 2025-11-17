@@ -37,7 +37,7 @@ class BaseVacancyAccessDTODAO(BaseDTO):
 
 @dataclass
 class BaseVacancyDTODAO(BaseDTO):
-    company: BaseCompanyDTODAO
+    company: BaseCompanyDTODAO | None
     vacancy_id: int | None = None
     title: str | None = None
     description: str | None = None

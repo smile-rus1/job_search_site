@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, status, Body
 from src.api.handlers.company.response.company import CompanyOut
 from src.api.handlers.user.response.user import UserOut
 from src.api.handlers.vacancy.requests.vacancy import CreateVacancyRequest, UpdateVacancyRequest
-from src.api.handlers.vacancy.response.vacancy import VacancyResponse, VacancyTimeResponse
+from src.api.handlers.vacancy.response.vacancy import VacancyResponse, VacancyTimeResponse, VacancyLikedResponse
 from src.api.handlers.vacancy.response.vacancy_access import VacancyAccessResponse
 from src.api.handlers.vacancy.response.vacancy_type import VacancyTypeResponse
-from src.api.permissions import company_required
+from src.api.permissions import company_required, applicant_required
 from src.api.providers.abstract.services import vacancy_service_provider
 from src.api.providers.auth import TokenAuthDep
 from src.dto.services.company.company import BaseCompanyDTO
@@ -19,6 +19,11 @@ from src.services.vacancy.vacancy import VacancyService
 vacancy_router = APIRouter(
     prefix="/vacancies",
     tags=["Vacancies"]
+)
+
+vacancy_liked_router = APIRouter(
+    prefix="/liked",
+    tags=["LikedVacancies"]
 )
 
 
@@ -261,3 +266,86 @@ async def raise_vacancy_in_search(
         next_update_in_hours=res.get("next_update_in_hours"),
         next_time_update=res.get("next_time_update")
     )
+
+
+@vacancy_liked_router.patch(
+    "/{vacancy_id}/like",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Vacancy was added to liked"},
+        403: {"description": "Applicant access required"},
+        404: {"description": "Vacancy with id not found!"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+@applicant_required
+async def like_vacancy(
+        vacancy_id: int,
+        auth: TokenAuthDep,
+        vacancy_service: VacancyService = Depends(vacancy_service_provider)
+):
+    await vacancy_service.like_vacancy_by_applicant(
+        vacancy_id,
+        auth.request.state.user.user_id
+    )
+
+    return {"detail": "Vacancies was added to liked"}
+
+
+@vacancy_liked_router.delete(
+    "/{vacancy_id}/dislike",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Vacancy was deleted from liked"},
+        403: {"description": "Applicant access required"},
+        404: {"description": "Vacancy with id not found!"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+@applicant_required
+async def dislike_vacancy(
+        vacancy_id: int,
+        auth: TokenAuthDep,
+        vacancy_service: VacancyService = Depends(vacancy_service_provider)
+):
+    await vacancy_service.dislike_vacancy_by_applicant(
+        vacancy_id,
+        auth.request.state.user.user_id
+    )
+
+    return {"detail": "Vacancy was delete from liked"}
+
+
+@vacancy_liked_router.get(
+    "/get_all_liked_vacancies",
+    status_code=status.HTTP_200_OK,
+    response_model=list[VacancyLikedResponse],
+    responses={
+        200: {"description": "Liked vacancies"},
+        403: {"description": "Applicant access required"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+@applicant_required
+async def get_all_liked_vacancies_by_applicant(
+        auth: TokenAuthDep,
+        vacancy_service: VacancyService = Depends(vacancy_service_provider)
+):
+    vacancies = await vacancy_service.get_all_liked_vacancies_by_applicant(auth.request.state.user.user_id)
+
+    return [
+        VacancyLikedResponse(
+            company_id=vacancy.company.user.user_id,
+            company_name=vacancy.company.company_name,
+            address=vacancy.company.address,
+            vacancy_id=vacancy.vacancy_id,
+            title=vacancy.title,
+            is_published=vacancy.is_published,
+            experience_start=vacancy.experience_start,
+            experience_end=vacancy.experience_end
+        )
+        for vacancy in vacancies
+    ]
+
+
+vacancy_router.include_router(vacancy_liked_router)

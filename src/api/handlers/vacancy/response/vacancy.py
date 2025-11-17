@@ -38,3 +38,14 @@ class VacancyResponse(BaseModel):
 class VacancyTimeResponse(BaseModel):
     next_update_in_hours: float
     next_time_update: datetime
+
+
+class VacancyLikedResponse(BaseModel):
+    company_id: int
+    company_name: str
+    vacancy_id: int
+    title: str
+    is_published: bool
+    address: str | None = None
+    experience_start: int | None = None
+    experience_end: int | None = None
