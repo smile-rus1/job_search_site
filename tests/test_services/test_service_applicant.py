@@ -5,6 +5,8 @@ import pytest
 from src.dto.services.applicant.applicant import UpdateApplicantDTO
 from src.infrastructure.hasher import Hasher
 from src.services.applicant.applicant import ApplicantService
+from test_services.fakes.notification import FakeNotifications
+from test_services.fakes.redis_db import FakeRedisDB
 from test_services.fakes.transaction_manager import FakeTransactionalManager
 
 
@@ -12,11 +14,13 @@ from test_services.fakes.transaction_manager import FakeTransactionalManager
 async def test_create_applicant(applicant_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    applicant_service = ApplicantService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    applicant_service = ApplicantService(uow, hasher, notifications, redis_db)
 
     applicant = await applicant_service.create_applicant(applicant_data_dto)
-
     assert applicant is not None
+    assert notifications.sent["example@mail.ru"] is not None
     assert uow.committed
 
 
@@ -24,7 +28,9 @@ async def test_create_applicant(applicant_data_dto):
 async def test_update_applicant(applicant_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    applicant_service = ApplicantService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    applicant_service = ApplicantService(uow, hasher, notifications, redis_db)
 
     await uow.applicant_dao.create_applicant(applicant_data_dto)
 
@@ -46,7 +52,9 @@ async def test_update_applicant(applicant_data_dto):
 async def test_get_applicant_by_id(applicant_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    applicant_service = ApplicantService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    applicant_service = ApplicantService(uow, hasher, notifications, redis_db)
 
     await uow.applicant_dao.create_applicant(applicant_data_dto)
 

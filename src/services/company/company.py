@@ -17,9 +17,10 @@ from src.dto.services.company.company import (
 )
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
-from src.infrastructure.celery import email_tasks
 from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.infrastructure.notifications import AbstractNotifications
+from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.utils import create_confirm_link
 
@@ -31,7 +32,12 @@ class CompanyUseCase(ABC):
 
 
 class CreateCompany(CompanyUseCase):
-    async def __call__(self, company_dto: CreateCompanyDTO) -> CompanyOutDTO:
+    async def __call__(
+            self,
+            company_dto: CreateCompanyDTO,
+            notifications: AbstractNotifications,
+            redis_db: IRedisDB
+    ) -> CompanyOutDTO:
         hashed_password = self._hasher.hash(company_dto.user.password)
         company = BaseCompanyDTODAO(
             user=BaseUserDTODAO(
@@ -63,7 +69,7 @@ class CreateCompany(CompanyUseCase):
 
         confirm_link = create_confirm_link.create_confirm_link(token)
 
-        await self._tm.redis_db.set(
+        await redis_db.set(
             key=redis_key,
             value=json.dumps({"user_id": company_created.user.user_id, "type": TypeUser.COMPANY.value}),
             expire=300
@@ -72,9 +78,13 @@ class CreateCompany(CompanyUseCase):
         logger.bind(
             app_name=f"{CreateCompany.__name__}"
         ).info(f"LINK TO CONFIRM {confirm_link}")
-        email_tasks.send_confirmation_email_task.delay(
-            to_email=company_created.user.email,
-            confirm_link=confirm_link
+        notifications.send(
+            destination=company_created.user.email,
+            template="confirm_email",
+            data={
+                "subject": "Подтвердите регистрацию",
+                "body": f"Перейдите по ссылке для подтверждения: {confirm_link}"
+            }
         )
 
         return CompanyOutDTO(
@@ -144,12 +154,22 @@ class SearchCompanies(CompanyUseCase):
 
 
 class CompanyService:
-    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
+    def __init__(
+            self,
+            tm: IBaseTransactionManager,
+            hasher: IHasher,
+            notifications: AbstractNotifications,
+            redis_db: IRedisDB
+    ):
         self._tm = tm
         self._hasher = hasher
+        self._notifications = notifications
+        self._redis_db = redis_db
 
     async def create_company(self, company_dto: CreateCompanyDTO) -> CompanyOutDTO:
-        return await CreateCompany(tm=self._tm, hasher=self._hasher)(company_dto)
+        return await CreateCompany(tm=self._tm, hasher=self._hasher)(
+            company_dto, self._notifications, self._redis_db
+        )
 
     async def update_company(self, company_dto: UpdateCompanyDTO) -> None:
         return await UpdateCompany(tm=self._tm, hasher=self._hasher)(company_dto)

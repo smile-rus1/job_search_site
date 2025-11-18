@@ -10,7 +10,9 @@ from src.core.config import Config
 from src.infrastructure.connections import get_db_connection, get_redis_connections
 from src.api.providers.build_transaction_manager import build_tm
 from src.infrastructure.hasher import Hasher
+from src.infrastructure.notifications.email import EmailNotifications
 from src.infrastructure.redis_db.redis_db import RedisDB
+from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.infrastructure.redis_db import IRedisDB
 
 
@@ -39,13 +41,12 @@ def redis_db_getter(
 
 def tm_getter(
         session: AsyncSession = Depends(session_provider),
-        redis_db: IRedisDB = Depends(redis_db_provider)
 ):
     """
     This func is get impl of transaction manager
     """
 
-    return build_tm(session, redis_db)
+    return build_tm(session)
 
 
 def fm_getter(config: Config):
@@ -59,3 +60,7 @@ def fm_getter(config: Config):
 
 def hasher_getter() -> Hasher:
     return Hasher()
+
+
+def notification_email_getter() -> AbstractNotifications:
+    return EmailNotifications()

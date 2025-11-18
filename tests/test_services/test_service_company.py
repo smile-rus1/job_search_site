@@ -3,6 +3,8 @@ import pytest
 from src.dto.services.company.company import UpdateCompanyDTO, SearchDTO
 from src.infrastructure.hasher import Hasher
 from src.services.company.company import CompanyService
+from test_services.fakes.notification import FakeNotifications
+from test_services.fakes.redis_db import FakeRedisDB
 from test_services.fakes.transaction_manager import FakeTransactionalManager
 
 
@@ -10,11 +12,14 @@ from test_services.fakes.transaction_manager import FakeTransactionalManager
 async def test_create_company(company_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    company_service = CompanyService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    company_service = CompanyService(uow, hasher, notifications, redis_db)
 
     company = await company_service.create_company(company_data_dto)
 
     assert company is not None
+    assert notifications.sent["example_company@mail.ru"] is not None
     assert uow.committed
 
 
@@ -22,7 +27,9 @@ async def test_create_company(company_data_dto):
 async def test_update_company(company_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    company_service = CompanyService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    company_service = CompanyService(uow, hasher, notifications, redis_db)
 
     await uow.company_dao.create_company(company_data_dto)
 
@@ -44,7 +51,9 @@ async def test_update_company(company_data_dto):
 async def test_get_company_by_id(company_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    company_service = CompanyService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    company_service = CompanyService(uow, hasher, notifications, redis_db)
 
     await uow.company_dao.create_company(company_data_dto)
 
@@ -58,7 +67,9 @@ async def test_get_company_by_id(company_data_dto):
 async def test_search_company(company_data_dto):
     uow = FakeTransactionalManager()
     hasher = Hasher()
-    company_service = CompanyService(uow, hasher)
+    notifications = FakeNotifications()
+    redis_db = FakeRedisDB({})
+    company_service = CompanyService(uow, hasher, notifications, redis_db)
 
     await uow.company_dao.create_company(company_data_dto)
 

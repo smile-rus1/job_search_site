@@ -11,7 +11,6 @@ from src.interfaces.infrastructure.redis_db import IRedisDB
 
 class IBaseTransactionManager(Protocol):
     user_dao: IUserDAO
-    redis_db: IRedisDB  # ? мб вынести и просто добавить как зависимость в сервисе, т.к tm это все для транзакций БД
     applicant_dao: IApplicantDAO
     company_dao: ICompanyDAO
     resume_dao: IResumeDAO

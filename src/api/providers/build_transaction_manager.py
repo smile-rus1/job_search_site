@@ -6,12 +6,10 @@ from src.interfaces.infrastructure.redis_db import IRedisDB
 
 
 def build_tm(
-        session: AsyncSession,
-        redis_db: IRedisDB
+        session: AsyncSession
 ) -> TransactionManager:
     return TransactionManager(
         session=session,
-        redis_db=redis_db,
         user_dao=dao.UserDAO,
         applicant_dao=dao.ApplicantDAO,
         company_dao=dao.CompanyDAO,

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class MailConfig:
+class NotificationConfig:
     smtp_server: str
     smtp_port: int
     smtp_user: str

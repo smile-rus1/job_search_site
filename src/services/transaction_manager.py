@@ -27,7 +27,6 @@ class TransactionManager(BaseTransactionManager):
     def __init__(
             self,
             session: AsyncSession,
-            redis_db: IRedisDB,
             user_dao: Type[IUserDAO],
             applicant_dao: Type[IApplicantDAO],
             company_dao: Type[ICompanyDAO],
@@ -36,7 +35,6 @@ class TransactionManager(BaseTransactionManager):
             vacancy_dao: Type[IVacancyDAO]
     ):
         super().__init__(session=session)
-        self.redis_db = redis_db
         self.user_dao = user_dao(session=session)  # type: ignore
         self.applicant_dao = applicant_dao(session=session)  # type: ignore
         self.company_dao = company_dao(session=session)  # type: ignore

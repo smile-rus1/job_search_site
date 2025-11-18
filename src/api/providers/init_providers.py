@@ -16,6 +16,7 @@ def bind_common(app: FastAPI, config: Config):
     app.dependency_overrides[abstract.common.tm_provider] = common_provide.tm_getter
     app.dependency_overrides[abstract.common.fm_provider] = common_provide.fm_getter(config)
     app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter
+    app.dependency_overrides[abstract.common.notification_email_provider] = common_provide.notification_email_getter
 
 
 # def bind_auth(app: FastAPI):

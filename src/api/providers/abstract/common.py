@@ -26,3 +26,7 @@ def fm_provider():
     This is files manager provider
     """
     raise NotImplementedError
+
+
+def notification_email_provider():
+    raise NotImplementedError

@@ -10,7 +10,6 @@ class FakeTransactionalManager(IBaseTransactionManager):
 
         self.applicant_dao = FakeApplicantDAO()
         self.company_dao = FakeCompanyDAO()
-        self.redis_db = FakeRedisDB(dict())
 
     async def commit(self):
         self.committed = True

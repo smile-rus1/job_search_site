@@ -17,9 +17,10 @@ from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
 from src.infrastructure.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
-from src.infrastructure.celery import email_tasks
 
 import src.utils.create_confirm_link as create_confirm_link
+from src.interfaces.infrastructure.notifications import AbstractNotifications
+from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
 
@@ -30,7 +31,12 @@ class ApplicantUseCase(ABC):
 
 
 class CreateApplicant(ApplicantUseCase):
-    async def __call__(self, applicant_dto: CreateApplicantDTO) -> ApplicantOutDTO:
+    async def __call__(
+            self,
+            applicant_dto: CreateApplicantDTO,
+            notifications: AbstractNotifications,
+            redis_db: IRedisDB
+    ) -> ApplicantOutDTO:
         hashed_password = self._hasher.hash(applicant_dto.user.password)
         applicant = BaseApplicantDTODAO(
             user=BaseUserDTODAO(
@@ -64,7 +70,7 @@ class CreateApplicant(ApplicantUseCase):
 
         confirm_link = create_confirm_link.create_confirm_link(token)
 
-        await self._tm.redis_db.set(
+        await redis_db.set(
             key=redis_key,
             value=json.dumps({"user_id": applicant_created.user.user_id, "type": TypeUser.APPLICANT.value}),
             expire=300
@@ -73,9 +79,14 @@ class CreateApplicant(ApplicantUseCase):
         logger.bind(
             app_name=f"{CreateApplicant.__name__}"
         ).info(f"LINK TO CONFIRM {confirm_link}")
-        email_tasks.send_confirmation_email_task.delay(
-            to_email=applicant_created.user.email,
-            confirm_link=confirm_link
+
+        notifications.send(
+            destination=applicant_created.user.email,
+            template="confirm_email",
+            data={
+                "subject": "Подтвердите регистрацию",
+                "body": f"Перейдите по ссылке для подтверждения: {confirm_link}"
+            }
         )
 
         return ApplicantOutDTO(
@@ -133,12 +144,22 @@ class GetApplicantByID(ApplicantUseCase):
 
 
 class ApplicantService:
-    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
+    def __init__(
+            self,
+            tm: IBaseTransactionManager,
+            hasher: IHasher,
+            notifications: AbstractNotifications,
+            redis_db: IRedisDB
+    ):
         self._tm = tm
         self._hasher = hasher
+        self._notifications = notifications
+        self._redis_db = redis_db
 
     async def create_applicant(self, applicant_dto: CreateApplicantDTO) -> ApplicantOutDTO:
-        return await CreateApplicant(tm=self._tm, hasher=self._hasher)(applicant_dto)
+        return await CreateApplicant(tm=self._tm, hasher=self._hasher)(
+            applicant_dto, self._notifications, self._redis_db
+        )
 
     async def update_applicant(self, applicant_dto: UpdateApplicantDTO) -> None:
         return await UpdateApplicant(tm=self._tm, hasher=self._hasher)(applicant_dto)

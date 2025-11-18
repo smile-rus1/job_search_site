@@ -7,7 +7,7 @@ from src.core.config import Config
 from src.api.web_config import APIConfig
 from src.infrastructure.db_config import DBConfig
 from src.infrastructure.files_work.files_config import FilesWorkConfig
-from src.infrastructure.mail.config import MailConfig
+from src.infrastructure.notifications.config import NotificationConfig
 from src.infrastructure.redis_db.config import RedisConfig
 
 
@@ -41,7 +41,7 @@ def config_loader() -> Config:
             port=int(os.getenv("REDIS_PORT", 6379)),
             db=int(os.getenv("REDIS_DB", 0))
         ),
-        mail=MailConfig(
+        mail=NotificationConfig(
             smtp_server=os.getenv("SMTP_SERVER"),
             smtp_port=int(os.getenv("SMTP_PORT", 465)),
             smtp_user=os.getenv("SMTP_USER"),

@@ -9,6 +9,7 @@ from src.dto.services.user.auth import AuthUserDTO, AuthUserOutDTO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail, BaseUserException
 from src.exceptions.services.auth import InvalidEmail, InvalidPassword
 from src.interfaces.infrastructure.hasher import IHasher
+from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.interfaces.services.auth import IJWTAuth
 
@@ -59,9 +60,9 @@ class AuthenticateUser(AuthUseCase):
 
 
 class VerifyUser(AuthUseCase):
-    async def __call__(self, token: str) -> bool:
+    async def __call__(self, token: str, redis_db: IRedisDB) -> bool:
         redis_key = config.auth.user_confirm_key.format(token=token)
-        data = await self._tm.redis_db.get(redis_key)
+        data = await redis_db.get(redis_key)
         if data is None:
             return False
 
@@ -81,12 +82,13 @@ class VerifyUser(AuthUseCase):
 
 
 class AuthService:
-    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher):
+    def __init__(self, tm: IBaseTransactionManager, hasher: IHasher, redis_db: IRedisDB):
         self._tm = tm
         self._hasher = hasher
+        self._redis_db = redis_db
 
     async def authenticate_user(self, auth_dto: AuthUserDTO, auth: IJWTAuth) -> AuthUserOutDTO:
         return await AuthenticateUser(self._tm, self._hasher)(auth_dto, auth)
 
     async def verify_user(self, token: str) -> bool:
-        return await VerifyUser(self._tm, self._hasher)(token)
+        return await VerifyUser(self._tm, self._hasher)(token, self._redis_db)
