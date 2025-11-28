@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.transaction_manager import TransactionManager
 from src.infrastructure.db import dao
-from src.interfaces.infrastructure.redis_db import IRedisDB
 
 
 def build_tm(
@@ -15,5 +14,6 @@ def build_tm(
         company_dao=dao.CompanyDAO,
         resume_dao=dao.ResumeDAO,
         work_experience=dao.WorkExperienceDAO,
-        vacancy_dao=dao.VacancyDAO
+        vacancy_dao=dao.VacancyDAO,
+        respond_dao=dao.RespondOnVacancyDAO
     )

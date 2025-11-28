@@ -17,7 +17,7 @@ from src.dto.db.work_experience.work_experience import BaseWorkExperienceDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.resume.resume import ResumeException, ResumeNotFoundByID
 from src.infrastructure.db.models import ResumeDB, ApplicantDB, WorkExperienceDB, UserDB
-from src.infrastructure.enums import GenderEnum, EmploymentType, Currency
+from src.core.enums import GenderEnum, EmploymentType, Currency
 from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 

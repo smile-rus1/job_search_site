@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer, ForeignKey, Date, Enum
 
 from src.infrastructure.db.models import UserDB
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.core.enums import GenderEnum, EducationEnum
 
 
 class ApplicantDB(UserDB):

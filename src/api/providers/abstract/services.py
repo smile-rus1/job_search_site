@@ -28,3 +28,7 @@ def files_work_service_provider():
 
 def vacancy_service_provider():
     raise NotImplementedError
+
+
+def respond_vacancy_provider():
+    raise NotImplementedError

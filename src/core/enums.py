@@ -60,3 +60,25 @@ class VacancyDuration(enum.Enum):
     MONTH = "30"
     THREE_MONTH = "90"
     SIX_MONTH = "180"
+
+
+class StatusRespond(enum.Enum):
+    """
+    Enums of respond of vacancy by applicant or company on resume.
+    SENT - applicant/company sent responded
+    VIEWED - applicant/company viewed the response
+    ACCEPTED - applicant/company accepted the response
+    DECLINED - applicant/company the response
+    PENDING - applicant/company will be to think about response
+    """
+
+    SENT = "SENT"
+    VIEWED = "VIEWED"
+    ACCEPTED = "ACCEPTED"
+    DECLINED = "DECLINED"
+    PENDING = "PENDING"
+
+
+class ActorType(enum.Enum):
+    APPLICANT = "APPLICANT"
+    COMPANY = "COMPANY"

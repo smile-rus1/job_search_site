@@ -15,10 +15,10 @@ from src.dto.services.applicant.applicant import (
 )
 from src.dto.services.user.user import UserOutDTO, BaseUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
-from src.infrastructure.enums import TypeUser
+from src.core.enums import TypeUser
 from src.interfaces.infrastructure.hasher import IHasher
 
-import src.utils.create_confirm_link as create_confirm_link
+from src.utils import utils
 from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
@@ -68,7 +68,7 @@ class CreateApplicant(ApplicantUseCase):
         token = uuid.uuid4().hex
         redis_key = config.auth.user_confirm_key.format(token=token)
 
-        confirm_link = create_confirm_link.create_confirm_link(token)
+        confirm_link = utils.create_confirm_link(token)
 
         await redis_db.set(
             key=redis_key,

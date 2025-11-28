@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, Numeric, DateTime, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY
 from src.infrastructure.db.models.base import Base
-from src.infrastructure.enums import Currency
+from src.core.enums import Currency
 from src.infrastructure.enums_db import (
     VacancyDurationEnumDB,
     CurrencyEnumDB,
@@ -64,6 +64,10 @@ class VacancyDB(Base):
     )
     vacancy_type: Mapped["VacancyTypeDB"] = relationship(back_populates="vacancy")
     liked: Mapped["LikedVacancy"] = relationship(back_populates="vacancy")
+    responded: Mapped["RespondOnVacancyDB"] = relationship(  # type: ignore
+        cascade="all, delete-orphan",
+        back_populates="vacancy"
+    )
 
 
 class VacancyAccessDB(Base):

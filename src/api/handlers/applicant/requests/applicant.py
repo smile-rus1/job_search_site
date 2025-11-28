@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.core.enums import GenderEnum, EducationEnum
 
 
 class UpdateApplicantRequest(BaseModel):

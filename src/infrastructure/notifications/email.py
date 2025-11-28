@@ -21,6 +21,10 @@ class EmailNotifications(AbstractNotifications):
             from src.infrastructure.celery.tasks import send_confirmation_link_email
             send_confirmation_link_email.delay(destination, subject, body)
 
+        elif template == "send_respond_notification":
+            from src.infrastructure.celery.tasks import send_respond_notification
+            send_respond_notification.delay(destination, subject, body)
+
     def send_(self, destination: str, subject: str, body: str):
         self.msg = EmailMessage()
         self.msg["From"] = config.mail.smtp_user

@@ -11,7 +11,7 @@ import redis.asyncio as redis
 from src.dto.db.applicant.applicant import BaseApplicantDTODAO
 from src.dto.db.company.company import BaseCompanyDTODAO
 from src.dto.db.user.user import BaseUserDTODAO
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.core.enums import GenderEnum, EducationEnum
 from src.infrastructure.redis_db.redis_db import RedisDB
 
 Base = declarative_base()

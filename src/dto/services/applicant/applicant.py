@@ -3,7 +3,7 @@ from datetime import date
 
 from src.dto.base_dto import BaseDTO
 from src.dto.services.user.user import CreateUserDTO, UserOutDTO, BaseUserDTO
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.core.enums import GenderEnum, EducationEnum
 
 
 @dataclass

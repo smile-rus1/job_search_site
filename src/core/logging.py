@@ -16,7 +16,7 @@ class FileLogger(BaseLogger):
             logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
         os.makedirs(logs_dir, exist_ok=True)
         logger.add(
-            os.path.join(logs_dir, "{time:DD.MM.YYYY}-logs.txt"),
+            os.path.join(logs_dir, "{time:YYYY.MM.DD}-logs.txt"),
             format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | NAME SERVICE: {extra[app_name]} | {message}",
             level="INFO",
             rotation="1 day"

@@ -2,7 +2,7 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 
 from loguru import logger
-from sqlalchemy import insert, select, update, delete, Select, case, func, text
+from sqlalchemy import insert, select, update, delete, case, func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload, load_only
 
@@ -18,10 +18,12 @@ from src.exceptions.infrascructure.vacancy.vacancy import (
 from src.infrastructure.db.models import (
     VacancyDB,
     VacancyTypeDB,
-    VacancyAccessDB, CompanyDB, UserDB
+    VacancyAccessDB,
+    CompanyDB,
+    UserDB
 )
 from src.infrastructure.db.models.vacancy import LikedVacancy
-from src.infrastructure.enums import VacancyDuration
+from src.core.enums import VacancyDuration
 from src.interfaces.infrastructure.dao.vacancy_dao import IVacancyDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 

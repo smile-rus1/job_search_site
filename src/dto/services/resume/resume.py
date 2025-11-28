@@ -4,7 +4,7 @@ from datetime import datetime
 from src.dto.base_dto import BaseDTO
 from src.dto.services.applicant.applicant import ApplicantDTO
 from src.dto.services.work_exprerience.work_experience import WorkExperienceDTO
-from src.infrastructure.enums import Currency, EmploymentType, GenderEnum
+from src.core.enums import Currency, EmploymentType, GenderEnum
 
 
 @dataclass

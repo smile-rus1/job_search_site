@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import UploadFile, File, Form, Depends
 from pydantic import BaseModel
 
-from src.infrastructure.enums import GenderEnum, EducationEnum
+from src.core.enums import GenderEnum, EducationEnum
 
 
 class CreateUserRequest(BaseModel):
@@ -55,6 +55,9 @@ def create_applicant(
         level_education: EducationEnum | None = Form(None),
         date_born: date | None = Form(None)
 ):
+
+    # починить потом с файлом, чтобы если пользовать не передавал файл, то выводить либо стандартный,
+    # или же ничего не сохранять
     return CreateApplicantRequest(
         user=user,
         gender=gender,

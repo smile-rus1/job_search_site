@@ -41,6 +41,10 @@ class ResumeDB(Base):
         back_populates="resume",
         cascade="all, delete-orphan"
     )
+    responded: Mapped["RespondOnVacancyDB"] = relationship(  # type: ignore
+        cascade="all, delete-orphan",
+        back_populates="resume"
+    )
 
 
 class WorkExperienceDB(Base):

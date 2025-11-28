@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.infrastructure.enums import Currency, EmploymentType, GenderEnum
+from src.core.enums import Currency, EmploymentType, GenderEnum
 
 
 class CreateResumeRequest(BaseModel):

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from src.dto.base_dto import BaseDTO
 from src.dto.db.company.company import BaseCompanyDTODAO
-from src.infrastructure.enums import (
+from src.core.enums import (
     Currency,
     EmploymentType,
     WorkScheduleType,

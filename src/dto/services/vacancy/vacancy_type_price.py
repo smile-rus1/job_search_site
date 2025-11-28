@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.dto.base_dto import BaseDTO
-from src.infrastructure.enums import VacancyDuration, Currency
+from src.core.enums import VacancyDuration, Currency
 
 
 @dataclass

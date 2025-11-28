@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from src.api.handlers.company.response.company import CompanyOut
 from src.api.handlers.vacancy.response.vacancy_access import VacancyAccessResponse
 from src.api.handlers.vacancy.response.vacancy_type import VacancyTypeResponse
-from src.infrastructure.enums import (
+from src.core.enums import (
     Currency,
     EmploymentType,
     WorkScheduleType,

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 from src.api.handlers.vacancy.requests.vacancy_type import CreateVacancyTypeRequest
-from src.infrastructure.enums import (
+from src.core.enums import (
     Currency,
     EmploymentType,
     WorkScheduleType,

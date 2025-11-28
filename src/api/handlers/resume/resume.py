@@ -9,7 +9,7 @@ from src.api.permissions import applicant_required
 from src.api.providers.abstract.services import resume_service_provider
 from src.api.providers.auth import TokenAuthDep
 from src.dto.services.resume.resume import CreateResumeDTO, UpdateResumeDTO, SearchResumeDTO
-from src.infrastructure.enums import EmploymentType
+from src.core.enums import EmploymentType
 from src.services.resume.resume import ResumeService
 
 

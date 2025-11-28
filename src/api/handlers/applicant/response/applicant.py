@@ -3,7 +3,7 @@ from datetime import date
 from pydantic import BaseModel
 
 from src.api.handlers.user.response.user import UserOut
-from src.infrastructure.enums import EducationEnum, GenderEnum
+from src.core.enums import EducationEnum, GenderEnum
 
 
 class ApplicantOut(BaseModel):

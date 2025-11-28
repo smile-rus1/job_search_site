@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from src.api.handlers.applicant.response.applicant import ApplicantOut
 from src.api.handlers.work_experience.response.work_experience import WorkExperienceResponse
-from src.infrastructure.enums import Currency, EmploymentType
+from src.core.enums import Currency, EmploymentType
 
 
 class ResumeOutResponse(BaseModel):

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from src.dto.base_dto import BaseDTO
-from src.infrastructure.enums import VacancyDuration
+from src.core.enums import VacancyDuration
 
 
 @dataclass

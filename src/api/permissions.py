@@ -1,7 +1,7 @@
 from functools import wraps
 from fastapi import HTTPException, status
 
-from src.infrastructure.enums import TypeUser
+from src.core.enums import TypeUser
 
 
 def login_required(func):

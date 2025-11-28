@@ -4,6 +4,7 @@ from src.api.handlers.resume.resume import resume_router
 from src.api.handlers.user import auth_router, user_router
 from src.api.handlers.vacancy.vacancy import vacancy_router
 from src.api.handlers.work_experience.work_experience import work_experience_router
+from src.api.handlers.respond_on_vacancy.respond_on_vacancy import respond_on_vacancy_router
 
 
 __all__ = [
@@ -13,6 +14,7 @@ __all__ = [
     "company_router",
     "resume_router",
     "work_experience_router",
-    "vacancy_router"
+    "vacancy_router",
+    "respond_on_vacancy_router"
 ]
 

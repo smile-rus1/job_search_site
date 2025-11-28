@@ -32,6 +32,7 @@ def bind_services(app: FastAPI):
     app.dependency_overrides[abstract.services.work_experience_service_provider] = services.work_experience_getter  # type: ignore
     app.dependency_overrides[abstract.services.files_work_service_provider] = services.files_work_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.vacancy_service_provider] = services.vacancy_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.respond_vacancy_provider] = services.respond_vacancy_getter  # type: ignore
 
 
 def bind_middlewares(app: FastAPI):

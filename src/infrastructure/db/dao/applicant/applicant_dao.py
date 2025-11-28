@@ -11,7 +11,7 @@ from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
 from src.infrastructure.db.models import ApplicantDB, UserDB
-from src.infrastructure.enums import TypeUser
+from src.core.enums import TypeUser
 from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 

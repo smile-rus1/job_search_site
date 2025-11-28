@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from src.infrastructure.enums import VacancyDuration
+from src.core.enums import VacancyDuration
 
 
 class VacancyAccessResponse(BaseModel):

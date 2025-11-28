@@ -3,6 +3,7 @@ from src.api.handlers.exceptions.common_exc_handlers import (
     validation_exception_handler,
     request_validation_exception_handler
 )
+from src.api.handlers.exceptions.respond_on_vacancy_exc_handlers import respond_on_vacancy_exception_handler
 from src.api.handlers.exceptions.resume_exc_handlers import resume_exception_handler
 from src.api.handlers.exceptions.user_exc_handlers import user_exception_handler
 from src.api.handlers.exceptions.company_exc_handlers import company_exception_handler
@@ -20,6 +21,7 @@ __all__ = [
     "company_exception_handler",
     "resume_exception_handler",
     "work_experience_exception_handler",
-    "vacancy_exception_handler"
+    "vacancy_exception_handler",
+    "respond_on_vacancy_exception_handler"
 ]
 

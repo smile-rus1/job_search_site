@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
 from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
+from src.interfaces.infrastructure.dao.repond_on_vacancy_dao import IRespondOnVacancyDAO
 from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
 from src.interfaces.infrastructure.dao.vacancy_dao import IVacancyDAO
@@ -32,7 +33,8 @@ class TransactionManager(BaseTransactionManager):
             company_dao: Type[ICompanyDAO],
             resume_dao: Type[IResumeDAO],
             work_experience: Type[IWorkExperienceDAO],
-            vacancy_dao: Type[IVacancyDAO]
+            vacancy_dao: Type[IVacancyDAO],
+            respond_dao: Type[IRespondOnVacancyDAO]
     ):
         super().__init__(session=session)
         self.user_dao = user_dao(session=session)  # type: ignore
@@ -41,3 +43,4 @@ class TransactionManager(BaseTransactionManager):
         self.resume_dao = resume_dao(session=session)  # type: ignore
         self.work_experience_dao = work_experience(session=session)  # type: ignore
         self.vacancy_dao = vacancy_dao(session=session)  # type: ignore
+        self.respond_dao = respond_dao(session=session)  # type: ignore

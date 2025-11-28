@@ -11,6 +11,7 @@ from src.services.applicant.applicant import ApplicantService
 from src.services.company.company import CompanyService
 from src.services.files_work.files_manager import FilesManager
 from src.services.files_work.files_work import FilesWorkService
+from src.services.respond_on_vacancy.respond_on_vacancy import RespondOnVacancyService
 from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
@@ -73,3 +74,10 @@ def vacancy_service_getter(
         tm: IBaseTransactionManager = Depends(tm_provider)
 ):
     return VacancyService(tm=tm)
+
+
+def respond_vacancy_getter(
+        tm: IBaseTransactionManager = Depends(tm_provider),
+        notifications: AbstractNotifications = Depends(notification_email_provider),
+):
+    return RespondOnVacancyService(tm=tm, notifications=notifications)

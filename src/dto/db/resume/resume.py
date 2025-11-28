@@ -4,12 +4,12 @@ from datetime import datetime
 from src.dto.base_dto import BaseDTO
 from src.dto.db.applicant.applicant import BaseApplicantDTODAO
 from src.dto.db.work_experience.work_experience import BaseWorkExperienceDTODAO
-from src.infrastructure.enums import Currency, EmploymentType, GenderEnum
+from src.core.enums import Currency, EmploymentType, GenderEnum
 
 
 @dataclass
 class BaseResumeDTODAO(BaseDTO):
-    applicant: BaseApplicantDTODAO
+    applicant: BaseApplicantDTODAO | None
     resume_id: int | None = None
     name_resume: str | None = None
     key_skills: str | None = None
