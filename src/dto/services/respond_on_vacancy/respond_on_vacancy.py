@@ -23,3 +23,13 @@ class CreateRespondOnVacancyDTO(BaseDTO):
     responder_type: ActorType = None
     response_date: datetime | None = None
     message: str | None = None
+
+
+@dataclass
+class ChangeStatusRespondDTO(BaseDTO):
+    user_id: int
+    response_id: int
+    status: StatusRespond
+    responder_type: ActorType
+    message: str | None
+

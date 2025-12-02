@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from loguru import logger
-from sqlalchemy import insert, select, literal, cast
+from sqlalchemy import insert, select, literal, cast, update, or_
 from sqlalchemy.exc import IntegrityError
 
 from src.core.enums import ActorType
@@ -32,16 +32,6 @@ from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
     async def create_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
-        # sql_respond = (
-        #     insert(RespondOnVacancyDB)
-        #     .values(
-        #         responder_type=respond.responder_type,
-        #         status=respond.status,
-        #         vacancy_id=respond.vacancy.vacancy_id,
-        #         resume_id=respond.resume.resume_id
-        #     ).returning(RespondOnVacancyDB.response_id)
-        # )
-
         sql_respond = (
             insert(RespondOnVacancyDB)
             .from_select(
@@ -142,6 +132,62 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
         )
 
         return respond
+
+    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> None:
+        sub_sql = (
+            select(RespondOnVacancyDB.response_id)
+            .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
+            .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
+            .join(ResumeDB, ResumeDB.resume_id == RespondOnVacancyDB.resume_id)
+            .join(ApplicantDB, ApplicantDB.applicant_id == ResumeDB.applicant_id)
+            .where(
+                or_(
+                    CompanyDB.user_id == respond.user_id,
+                    ApplicantDB.user_id == respond.user_id,
+                ),
+                RespondOnVacancyDB.responder_type != respond.responder_type,
+                RespondOnVacancyDB.response_id == respond.response_id,
+            )
+            .scalar_subquery()
+        )
+
+        sql = (
+            update(RespondOnVacancyDB)
+            .where(
+                RespondOnVacancyDB.response_id == sub_sql
+            )
+            .values(
+                status=respond.status
+            )
+        )
+        try:
+            row = (await self._session.execute(sql))
+
+        except IntegrityError as exc:
+            logger.bind(
+
+                app_name=f"{RespondOnVacancyDAO.__name__} in {self.change_status_respond.__name__}"
+            ).error(f"WITH DATA {respond} IN CHANGE STATUS RESPOND\nMESSAGE: {exc}")
+            raise self._error_parser(respond, exc)
+
+        if row.rowcount == 0:
+            raise ResponsePermissionError()
+        sql_message = (
+            insert(ResponseMessageDB)
+            .values(
+                response_id=respond.response_id,
+                sender_type=respond.responder_type,
+                message_text=respond.message,
+            )
+        )
+        try:
+            await self._session.execute(sql_message)
+
+        except IntegrityError as exc:
+            logger.bind(
+                app_name=f"{RespondOnVacancyDAO.__name__} in {self.create_respond.__name__}"
+            ).error(f"WITH DATA {respond} IN CREATE MESSAGE RESPOND IN CHANGE STATUS\nMESSAGE: {exc}")
+            raise self._error_parser(respond, exc)
 
     @staticmethod
     def _error_parser(

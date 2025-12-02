@@ -8,7 +8,10 @@ from src.core.enums import StatusRespond
 from src.dto.db.respond_on_vacancy.respond_on_vacancy import BaseRespondOnVacancyDTODAO
 from src.dto.db.resume.resume import BaseResumeDTODAO
 from src.dto.db.vacancy.vacancy import BaseVacancyDTODAO
-from src.dto.services.respond_on_vacancy.respond_on_vacancy import CreateRespondOnVacancyDTO
+from src.dto.services.respond_on_vacancy.respond_on_vacancy import (
+    CreateRespondOnVacancyDTO,
+    ChangeStatusRespondDTO
+)
 from src.exceptions.infrascructure.respond_on_vacancy.respond_on_vacancy import BaseRespondOnVacancyException
 from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
@@ -134,6 +137,39 @@ class CreateRespondOnVacancyByCompany(RespondOnVacancyUseCase):
         )
 
 
+class ChangeStatusRespond(RespondOnVacancyUseCase):
+    async def __call__(
+            self,
+            respond_dto: ChangeStatusRespondDTO,
+            notifications: AbstractNotifications
+    ) -> StatusRespond:
+        respond = BaseRespondOnVacancyDTODAO(
+            user_id=respond_dto.user_id,
+            response_id=respond_dto.response_id,
+            vacancy=BaseVacancyDTODAO(
+                company=None
+            ),
+            resume=BaseResumeDTODAO(
+                applicant=None,
+            ),
+            responder_type=respond_dto.responder_type,
+            status=respond_dto.status,
+            message=respond_dto.message
+        )
+        try:
+            await self._tm.respond_dao.change_status_respond(respond)
+            await self._tm.commit()
+
+        except BaseRespondOnVacancyException as exc:
+            logger.bind(
+                app_name=f"{ChangeStatusRespond.__name__}"
+            ).error(f"WITH DATA {respond_dto}")
+            await self._tm.rollback()
+            raise exc
+
+        return respond_dto.status
+
+
 class RespondOnVacancyService:
     def __init__(
             self,
@@ -148,3 +184,6 @@ class RespondOnVacancyService:
 
     async def create_respond_by_company(self, respond_dto: CreateRespondOnVacancyDTO):
         return await CreateRespondOnVacancyByCompany(self._tm)(respond_dto, self._notifications)
+
+    async def change_status_respond(self, respond_dto: ChangeStatusRespondDTO) -> StatusRespond:
+        return await ChangeStatusRespond(self._tm)(respond_dto, self._notifications)

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, status, Body
 
-from src.api.permissions import company_required, applicant_required
+from src.api.permissions import company_required, applicant_required, login_required
 from src.api.providers.abstract.services import respond_vacancy_provider
 from src.api.providers.auth import TokenAuthDep
-from src.core.enums import ActorType
-from src.dto.services.respond_on_vacancy.respond_on_vacancy import CreateRespondOnVacancyDTO
+from src.core.enums import ActorType, StatusRespond
+from src.dto.services.respond_on_vacancy.respond_on_vacancy import CreateRespondOnVacancyDTO, ChangeStatusRespondDTO
 from src.services.respond_on_vacancy.respond_on_vacancy import RespondOnVacancyService
 
 
@@ -59,7 +59,7 @@ async def respond_by_applicant(
         resume_id: int,
         vacancy_id: int,
         auth: TokenAuthDep,
-        message: str = Body(None),
+        message: str = Body(None, embed=True),
         respond_service: RespondOnVacancyService = Depends(respond_vacancy_provider)
 ):
     respond_dto = CreateRespondOnVacancyDTO(
@@ -72,3 +72,34 @@ async def respond_by_applicant(
 
     await respond_service.create_respond_by_applicant(respond_dto)
     return {"detail": "Respond to company vacancy was created"}
+
+
+@respond_on_vacancy_router.patch(
+    "/change_status/{response_id}",
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        202: {"description": "Respond changed"},
+        400: {"description": "You cannot change this response"},
+        403: {"description": "Login required"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+@login_required
+async def change_status_respond(
+        response_id: int,
+        auth: TokenAuthDep,
+        message: str = Body(None, embed=True),
+        status_response: StatusRespond = Body(..., embed=True),
+        respond_service: RespondOnVacancyService = Depends(respond_vacancy_provider)
+):
+    responder_type = ActorType.COMPANY if auth.request.state.user.type == "company" else ActorType.APPLICANT
+
+    respond_dto = ChangeStatusRespondDTO(
+        user_id=auth.request.state.user.user_id,
+        response_id=response_id,
+        message=message,
+        responder_type=responder_type,
+        status=status_response
+    )
+    await respond_service.change_status_respond(respond_dto)
+    return {"detail": f"Status changed on {status_response}"}
