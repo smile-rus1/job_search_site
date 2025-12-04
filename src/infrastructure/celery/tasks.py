@@ -10,3 +10,8 @@ def send_confirmation_link_email(destination: str, subject: str, body: str):
 @celery_app.task(name="email.send_respond_notification")
 def send_respond_notification(destination: str, subject: str, body):
     EmailNotifications().send_(destination, subject, body)
+
+
+@celery_app.task(name="email.send_message_about_change_status")
+def send_message_about_change_status(destination: str, subject: str, body):
+    EmailNotifications().send_(destination, subject, body)

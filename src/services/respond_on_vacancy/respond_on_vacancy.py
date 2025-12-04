@@ -157,7 +157,7 @@ class ChangeStatusRespond(RespondOnVacancyUseCase):
             message=respond_dto.message
         )
         try:
-            await self._tm.respond_dao.change_status_respond(respond)
+            res = await self._tm.respond_dao.change_status_respond(respond)
             await self._tm.commit()
 
         except BaseRespondOnVacancyException as exc:
@@ -166,6 +166,47 @@ class ChangeStatusRespond(RespondOnVacancyUseCase):
             ).error(f"WITH DATA {respond_dto}")
             await self._tm.rollback()
             raise exc
+
+        logger.bind(
+            app_name=f"{ChangeStatusRespond.__name__}"
+        ).info(f"Send email to {res}")
+
+        if res.vacancy.company is not None:
+            destination = res.resume.applicant.user.email
+            body = (
+                "Вам пришёл отклик от кандидата.\n"
+                if respond_dto.message is None else
+                "Вам пришёл отклик от кандидата.\n"
+                f"«{respond_dto.message}»\n"
+            )
+            body += f"Ссылка на чат"  # тут мб сделать ссылку на чат
+            data_notification = {
+                "subject": f"С Вами хотят связаться",
+                "body": body
+            }
+
+        elif res.resume.applicant is not None:
+            destination = res.vacancy.company.user.email
+            body = (
+                "Вам пришло сообщение от компании.\n"
+                if respond_dto.message is None else
+                "Вам пришло сообщение от компании.\n"
+                f"«{respond_dto.message}»\n"
+            )
+            body += f"Ссылка на чат"  # тут мб сделать ссылку на чат
+            data_notification = {
+                "subject": f"С Вами хотят связаться",
+                "body": body
+            }
+        else:
+            destination = ""
+            data_notification = {}
+
+        notifications.send(
+            destination=destination,
+            template="send_message_about_change_status",
+            data=data_notification
+        )
 
         return respond_dto.status
 

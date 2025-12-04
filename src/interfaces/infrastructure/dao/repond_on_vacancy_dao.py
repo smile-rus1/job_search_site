@@ -5,5 +5,5 @@ class IRespondOnVacancyDAO:
     async def create_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
         raise NotImplementedError
 
-    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> None:
+    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
         raise NotImplementedError

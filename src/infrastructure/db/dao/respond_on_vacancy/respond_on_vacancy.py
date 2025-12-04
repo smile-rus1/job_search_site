@@ -133,7 +133,7 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
 
         return respond
 
-    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> None:
+    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
         sub_sql = (
             select(RespondOnVacancyDB.response_id)
             .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
@@ -188,6 +188,45 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
                 app_name=f"{RespondOnVacancyDAO.__name__} in {self.create_respond.__name__}"
             ).error(f"WITH DATA {respond} IN CREATE MESSAGE RESPOND IN CHANGE STATUS\nMESSAGE: {exc}")
             raise self._error_parser(respond, exc)
+
+        if respond.responder_type == ActorType.COMPANY:
+            sql = (
+                select(ApplicantDB.email)
+                .select_from(RespondOnVacancyDB)
+                .join(ResumeDB, ResumeDB.resume_id == RespondOnVacancyDB.resume_id)
+                .join(ApplicantDB, ApplicantDB.applicant_id == ResumeDB.applicant_id)
+                .where(RespondOnVacancyDB.response_id == respond.response_id)
+            )
+
+        elif respond.responder_type == ActorType.APPLICANT:
+            sql = (
+                select(CompanyDB.email)
+                .select_from(RespondOnVacancyDB)
+                .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
+                .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
+                .where(RespondOnVacancyDB.response_id == respond.response_id)
+            )
+        email = (await self._session.execute(sql)).scalar()
+
+        if respond.responder_type == ActorType.APPLICANT:
+            respond.vacancy = BaseVacancyDTODAO(
+                company=BaseCompanyDTODAO(
+                    user=BaseUserDTODAO(
+                        email=email
+                    )
+                )
+            )
+
+        elif respond.responder_type == ActorType.COMPANY:
+            respond.resume = BaseResumeDTODAO(
+                applicant=BaseApplicantDTODAO(
+                    user=BaseUserDTODAO(
+                        email=email
+                    )
+                )
+            )
+
+        return respond
 
     @staticmethod
     def _error_parser(
