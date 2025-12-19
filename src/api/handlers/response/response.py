@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Depends, status, Body
 
 from src.api.permissions import company_required, applicant_required, login_required
-from src.api.providers.abstract.services import respond_vacancy_provider
+from src.api.providers.abstract.services import response_service_provider
 from src.api.providers.auth import TokenAuthDep
 from src.core.enums import ActorType, StatusRespond
-from src.dto.services.respond_on_vacancy.respond_on_vacancy import CreateRespondOnVacancyDTO, ChangeStatusRespondDTO
-from src.services.respond_on_vacancy.respond_on_vacancy import RespondOnVacancyService
+from src.dto.services.response.response import CreateResponseDTO, ChangeStatusResponseDTO
+from src.services.response.response import ResponseService
 
 
-respond_on_vacancy_router = APIRouter(
+response_router = APIRouter(
     prefix="/responds",
     tags=["Respond"]
 )
 
 
-@respond_on_vacancy_router.post(
+@response_router.post(
     "/response_by_company/{vacancy_id}/{resume_id}",
     status_code=status.HTTP_201_CREATED,
     responses={
@@ -30,9 +30,9 @@ async def respond_by_company(
         resume_id: int,
         auth: TokenAuthDep,
         message: str = Body(None),
-        respond_service: RespondOnVacancyService = Depends(respond_vacancy_provider)
+        respond_service: ResponseService = Depends(response_service_provider)
 ):
-    respond_dto = CreateRespondOnVacancyDTO(
+    respond_dto = CreateResponseDTO(
         user_id=auth.request.state.user.user_id,
         resume_id=resume_id,
         vacancy_id=vacancy_id,
@@ -40,11 +40,11 @@ async def respond_by_company(
         message=message
     )
 
-    await respond_service.create_respond_by_company(respond_dto)
+    await respond_service.create_response_by_company(respond_dto)
     return {"detail": "Respond to applicant resume was created"}
 
 
-@respond_on_vacancy_router.post(
+@response_router.post(
     "/response_by_applicant/{resume_id}/{vacancy_id}",
     status_code=status.HTTP_201_CREATED,
     responses={
@@ -60,9 +60,9 @@ async def respond_by_applicant(
         vacancy_id: int,
         auth: TokenAuthDep,
         message: str = Body(None, embed=True),
-        respond_service: RespondOnVacancyService = Depends(respond_vacancy_provider)
+        respond_service: ResponseService = Depends(response_service_provider)
 ):
-    respond_dto = CreateRespondOnVacancyDTO(
+    respond_dto = CreateResponseDTO(
         user_id=auth.request.state.user.user_id,
         resume_id=resume_id,
         vacancy_id=vacancy_id,
@@ -70,11 +70,11 @@ async def respond_by_applicant(
         message=message
     )
 
-    await respond_service.create_respond_by_applicant(respond_dto)
+    await respond_service.create_response_by_applicant(respond_dto)
     return {"detail": "Respond to company vacancy was created"}
 
 
-@respond_on_vacancy_router.patch(
+@response_router.patch(
     "/change_status/{response_id}",
     status_code=status.HTTP_202_ACCEPTED,
     responses={
@@ -90,16 +90,16 @@ async def change_status_respond(
         auth: TokenAuthDep,
         message: str = Body(None, embed=True),
         status_response: StatusRespond = Body(..., embed=True),
-        respond_service: RespondOnVacancyService = Depends(respond_vacancy_provider)
+        respond_service: ResponseService = Depends(response_service_provider)
 ):
     responder_type = ActorType.COMPANY if auth.request.state.user.type == "company" else ActorType.APPLICANT
 
-    respond_dto = ChangeStatusRespondDTO(
+    respond_dto = ChangeStatusResponseDTO(
         user_id=auth.request.state.user.user_id,
         response_id=response_id,
         message=message,
         responder_type=responder_type,
         status=status_response
     )
-    await respond_service.change_status_respond(respond_dto)
+    await respond_service.change_status_response(respond_dto)
     return {"detail": f"Status changed on {status_response}"}

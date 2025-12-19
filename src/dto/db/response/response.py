@@ -8,7 +8,7 @@ from src.dto.db.vacancy.vacancy import BaseVacancyDTODAO
 
 
 @dataclass
-class BaseRespondOnVacancyDTODAO(BaseDTO):
+class BaseResponseDTODAO(BaseDTO):
     user_id: int | None
     vacancy: BaseVacancyDTODAO | None
     resume: BaseResumeDTODAO | None

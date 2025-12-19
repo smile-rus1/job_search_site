@@ -4,36 +4,37 @@ from loguru import logger
 from sqlalchemy import insert, select, literal, cast, update, or_
 from sqlalchemy.exc import IntegrityError
 
-from src.core.enums import ActorType
+from src.core.enums import ActorType, ChatType
 from src.dto.db.applicant.applicant import BaseApplicantDTODAO
 from src.dto.db.company.company import BaseCompanyDTODAO
-from src.dto.db.respond_on_vacancy.respond_on_vacancy import BaseRespondOnVacancyDTODAO
+from src.dto.db.response.response import BaseResponseDTODAO
 from src.dto.db.resume.resume import BaseResumeDTODAO
 from src.dto.db.user.user import BaseUserDTODAO
 from src.dto.db.vacancy.vacancy import BaseVacancyDTODAO
-from src.exceptions.infrascructure.respond_on_vacancy.respond_on_vacancy import (
-    BaseRespondOnVacancyException,
+from src.exceptions.infrascructure.response.response import (
+    BaseResponseException,
     ResponseAlreadyMaked,
     ResponseNotFoundOnVacancyOrResume,
     ResponsePermissionError
 )
 from src.infrastructure.db.models import (
-    RespondOnVacancyDB,
-    ResponseMessageDB,
+    ResponsesDB,
+    MessageDB,
     CompanyDB,
     ApplicantDB,
     VacancyDB,
     ResumeDB
 )
+from src.infrastructure.db.models.chat import ChatDB
 from src.infrastructure.enums_db import StatusRespondEnumDB, ActorTypeEnumDB
-from src.interfaces.infrastructure.dao.repond_on_vacancy_dao import IRespondOnVacancyDAO
+from src.interfaces.infrastructure.dao.response_dao import IResponsesDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
 
 
-class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
-    async def create_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
+class ResponseDAO(SqlAlchemyDAO, IResponsesDAO):
+    async def create_respond(self, respond: BaseResponseDTODAO) -> BaseResponseDTODAO:
         sql_respond = (
-            insert(RespondOnVacancyDB)
+            insert(ResponsesDB)
             .from_select(
                 ["responder_type", "status", "vacancy_id", "resume_id"],
                 select(
@@ -56,7 +57,7 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
                     )
                 )
             )
-            .returning(RespondOnVacancyDB.response_id)
+            .returning(ResponsesDB.response_id)
         )
 
         try:
@@ -64,7 +65,7 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
 
         except IntegrityError as exc:
             logger.bind(
-                app_name=f"{RespondOnVacancyDAO.__name__} in {self.create_respond.__name__}"
+                app_name=f"{ResponseDAO.__name__} in {self.create_respond.__name__}"
             ).error(f"WITH DATA {respond}\nMESSAGE: {exc}")
             raise self._error_parser(respond, exc)
 
@@ -73,12 +74,31 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
         if response_id is None:
             raise ResponsePermissionError()
 
-        sql_message = (
-            insert(ResponseMessageDB)
+        sql_chat = (
+            insert(ChatDB)
             .values(
-                response_id=response_id,
+                chat_type=ChatType.RESPONSE,
+                response_id=response_id
+            )
+            .returning(ChatDB.chat_id)
+        )
+        try:
+            res_chat = await self._session.execute(sql_chat)
+        except IntegrityError as exc:
+            logger.bind(
+                app_name=f"{ResponseDAO.__name__} in {self.create_respond.__name__}"
+            ).error(f"FAILED CHAT CREATE WITH RESPONSE_ID={response_id}\nMESSAGE: {exc}")
+            raise self._error_parser(respond, exc)
+
+        chat_id = res_chat.scalar_one()
+
+        sql_message = (
+            insert(MessageDB)
+            .values(
+                chat_id=chat_id,
+                sender_id=respond.user_id,
                 sender_type=respond.responder_type,
-                message_text=respond.message,
+                message_text=respond.message
             )
         )
         try:
@@ -86,7 +106,7 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
 
         except IntegrityError as exc:
             logger.bind(
-                app_name=f"{RespondOnVacancyDAO.__name__} in {self.create_respond.__name__}"
+                app_name=f"{ResponseDAO.__name__} in {self.create_respond.__name__}"
             ).error(f"WITH DATA {respond} IN CREATE MESSAGE RESPOND\nMESSAGE: {exc}")
             raise self._error_parser(respond, exc)
 
@@ -99,13 +119,13 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
                     ApplicantDB.applicant_id.label("applicant_id"),
                     VacancyDB.title.label("vacancy_title")
                 )
-                .select_from(RespondOnVacancyDB)
-                .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
+                .select_from(ResponsesDB)
+                .join(VacancyDB, VacancyDB.vacancy_id == ResponsesDB.vacancy_id)
                 .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
-                .join(ResumeDB, ResumeDB.resume_id == RespondOnVacancyDB.resume_id)
+                .join(ResumeDB, ResumeDB.resume_id == ResponsesDB.resume_id)
                 .join(ApplicantDB, ApplicantDB.applicant_id == ResumeDB.applicant_id)
                 .where(
-                    RespondOnVacancyDB.response_id == response_id,
+                    ResponsesDB.response_id == response_id,
                 )
             )
         ).one()
@@ -133,51 +153,62 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
 
         return respond
 
-    async def change_status_respond(self, respond: BaseRespondOnVacancyDTODAO) -> BaseRespondOnVacancyDTODAO:
+    async def change_status_respond(self, respond: BaseResponseDTODAO) -> BaseResponseDTODAO:
         sub_sql = (
-            select(RespondOnVacancyDB.response_id)
-            .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
+            select(ResponsesDB.response_id)
+            .join(VacancyDB, VacancyDB.vacancy_id == ResponsesDB.vacancy_id)
             .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
-            .join(ResumeDB, ResumeDB.resume_id == RespondOnVacancyDB.resume_id)
+            .join(ResumeDB, ResumeDB.resume_id == ResponsesDB.resume_id)
             .join(ApplicantDB, ApplicantDB.applicant_id == ResumeDB.applicant_id)
             .where(
                 or_(
                     CompanyDB.user_id == respond.user_id,
                     ApplicantDB.user_id == respond.user_id,
                 ),
-                RespondOnVacancyDB.responder_type != respond.responder_type,
-                RespondOnVacancyDB.response_id == respond.response_id,
+                ResponsesDB.responder_type != respond.responder_type,
+                ResponsesDB.response_id == respond.response_id,
             )
             .scalar_subquery()
         )
 
         sql = (
-            update(RespondOnVacancyDB)
+            update(ResponsesDB)
             .where(
-                RespondOnVacancyDB.response_id == sub_sql
+                ResponsesDB.response_id == sub_sql
             )
             .values(
                 status=respond.status
             )
+            .returning(ResponsesDB.response_id)
         )
         try:
-            row = (await self._session.execute(sql))
+            row = await self._session.execute(sql)
 
         except IntegrityError as exc:
             logger.bind(
 
-                app_name=f"{RespondOnVacancyDAO.__name__} in {self.change_status_respond.__name__}"
+                app_name=f"{ResponseDAO.__name__} in {self.change_status_respond.__name__}"
             ).error(f"WITH DATA {respond} IN CHANGE STATUS RESPOND\nMESSAGE: {exc}")
             raise self._error_parser(respond, exc)
 
-        if row.rowcount == 0:
+        response_id = row.scalar_one_or_none()
+
+        if response_id is None:
             raise ResponsePermissionError()
+
+        sql_chat = (
+            select(ChatDB.chat_id)
+            .where(ChatDB.response_id == response_id)
+        )
+        chat_id = (await self._session.execute(sql_chat)).scalar_one()
+
         sql_message = (
-            insert(ResponseMessageDB)
+            insert(MessageDB)
             .values(
-                response_id=respond.response_id,
+                chat_id=chat_id,
                 sender_type=respond.responder_type,
                 message_text=respond.message,
+                sender_id=respond.user_id
             )
         )
         try:
@@ -185,26 +216,26 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
 
         except IntegrityError as exc:
             logger.bind(
-                app_name=f"{RespondOnVacancyDAO.__name__} in {self.create_respond.__name__}"
+                app_name=f"{ResponseDAO.__name__} in {self.create_respond.__name__}"
             ).error(f"WITH DATA {respond} IN CREATE MESSAGE RESPOND IN CHANGE STATUS\nMESSAGE: {exc}")
             raise self._error_parser(respond, exc)
 
         if respond.responder_type == ActorType.COMPANY:
             sql = (
                 select(ApplicantDB.email)
-                .select_from(RespondOnVacancyDB)
-                .join(ResumeDB, ResumeDB.resume_id == RespondOnVacancyDB.resume_id)
+                .select_from(ResponsesDB)
+                .join(ResumeDB, ResumeDB.resume_id == ResponsesDB.resume_id)
                 .join(ApplicantDB, ApplicantDB.applicant_id == ResumeDB.applicant_id)
-                .where(RespondOnVacancyDB.response_id == respond.response_id)
+                .where(ResponsesDB.response_id == respond.response_id)
             )
 
         elif respond.responder_type == ActorType.APPLICANT:
             sql = (
                 select(CompanyDB.email)
-                .select_from(RespondOnVacancyDB)
-                .join(VacancyDB, VacancyDB.vacancy_id == RespondOnVacancyDB.vacancy_id)
+                .select_from(ResponsesDB)
+                .join(VacancyDB, VacancyDB.vacancy_id == ResponsesDB.vacancy_id)
                 .join(CompanyDB, CompanyDB.company_id == VacancyDB.company_id)
-                .where(RespondOnVacancyDB.response_id == respond.response_id)
+                .where(ResponsesDB.response_id == respond.response_id)
             )
         email = (await self._session.execute(sql)).scalar()
 
@@ -225,14 +256,13 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
                     )
                 )
             )
-
         return respond
 
     @staticmethod
     def _error_parser(
-            respond: BaseRespondOnVacancyDTODAO,
+            respond: BaseResponseDTODAO,
             exc: IntegrityError
-    ) -> BaseRespondOnVacancyException:
+    ) -> BaseResponseException:
         error_text = str(exc.orig)
 
         if "duplicate key value violates unique constraint" in error_text:
@@ -241,4 +271,4 @@ class RespondOnVacancyDAO(SqlAlchemyDAO, IRespondOnVacancyDAO):
         elif "violates foreign key constraint" in error_text:
             return ResponseNotFoundOnVacancyOrResume()
 
-        return BaseRespondOnVacancyException()
+        return BaseResponseException()

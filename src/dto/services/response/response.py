@@ -6,16 +6,7 @@ from src.dto.base_dto import BaseDTO
 
 
 @dataclass
-class BaseRespondOnVacancyDTO(BaseDTO):
-    response_id: int | None = None
-    responder_type: ActorType = None
-    status: StatusRespond | None = None
-    response_date: datetime | None = None
-    message: str | None = None
-
-
-@dataclass
-class CreateRespondOnVacancyDTO(BaseDTO):
+class CreateResponseDTO(BaseDTO):
     user_id: int
     vacancy_id: int
     resume_id: int
@@ -26,7 +17,7 @@ class CreateRespondOnVacancyDTO(BaseDTO):
 
 
 @dataclass
-class ChangeStatusRespondDTO(BaseDTO):
+class ChangeStatusResponseDTO(BaseDTO):
     user_id: int
     response_id: int
     status: StatusRespond

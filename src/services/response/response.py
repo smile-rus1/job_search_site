@@ -4,15 +4,15 @@ from loguru import logger
 
 from src.utils import utils
 
-from src.core.enums import StatusRespond
-from src.dto.db.respond_on_vacancy.respond_on_vacancy import BaseRespondOnVacancyDTODAO
+from src.core.enums import StatusRespond, ActorType
+from src.dto.db.response.response import BaseResponseDTODAO
 from src.dto.db.resume.resume import BaseResumeDTODAO
 from src.dto.db.vacancy.vacancy import BaseVacancyDTODAO
-from src.dto.services.respond_on_vacancy.respond_on_vacancy import (
-    CreateRespondOnVacancyDTO,
-    ChangeStatusRespondDTO
+from src.dto.services.response.response import (
+    CreateResponseDTO,
+    ChangeStatusResponseDTO
 )
-from src.exceptions.infrascructure.respond_on_vacancy.respond_on_vacancy import BaseRespondOnVacancyException
+from src.exceptions.infrascructure.response.response import BaseResponseException
 from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 
@@ -22,13 +22,13 @@ class RespondOnVacancyUseCase(ABC):
         self._tm = tm
 
 
-class CreateRespondOnVacancyByApplicant(RespondOnVacancyUseCase):
+class CreateResponseByApplicant(RespondOnVacancyUseCase):
     async def __call__(
             self,
-            respond_dto: CreateRespondOnVacancyDTO,
+            respond_dto: CreateResponseDTO,
             notifications: AbstractNotifications
     ):
-        respond = BaseRespondOnVacancyDTODAO(
+        respond = BaseResponseDTODAO(
             user_id=respond_dto.user_id,
             vacancy=BaseVacancyDTODAO(
                 company=None,
@@ -47,9 +47,9 @@ class CreateRespondOnVacancyByApplicant(RespondOnVacancyUseCase):
             respond_out = await self._tm.respond_dao.create_respond(respond)
             await self._tm.commit()
 
-        except BaseRespondOnVacancyException as exc:
+        except BaseResponseException as exc:
             logger.bind(
-                app_name=f"{CreateRespondOnVacancyByApplicant.__name__}"
+                app_name=f"{CreateResponseByApplicant.__name__}"
             ).error(f"WITH DATA {respond_dto}")
             await self._tm.rollback()
             raise exc
@@ -68,7 +68,7 @@ class CreateRespondOnVacancyByApplicant(RespondOnVacancyUseCase):
         }
 
         logger.bind(
-            app_name=f"{CreateRespondOnVacancyByApplicant.__name__}"
+            app_name=f"{CreateResponseByApplicant.__name__}"
         ).info(f"DATA {data_notification}")
 
         notifications.send(
@@ -78,13 +78,13 @@ class CreateRespondOnVacancyByApplicant(RespondOnVacancyUseCase):
         )
 
 
-class CreateRespondOnVacancyByCompany(RespondOnVacancyUseCase):
+class CreateResponseByCompany(RespondOnVacancyUseCase):
     async def __call__(
             self,
-            respond_dto: CreateRespondOnVacancyDTO,
+            respond_dto: CreateResponseDTO,
             notifications: AbstractNotifications
     ):
-        respond = BaseRespondOnVacancyDTODAO(
+        respond = BaseResponseDTODAO(
             user_id=respond_dto.user_id,
             vacancy=BaseVacancyDTODAO(
                 company=None,
@@ -103,9 +103,9 @@ class CreateRespondOnVacancyByCompany(RespondOnVacancyUseCase):
             respond_out = await self._tm.respond_dao.create_respond(respond)
             await self._tm.commit()
 
-        except BaseRespondOnVacancyException as exc:
+        except BaseResponseException as exc:
             logger.bind(
-                app_name=f"{CreateRespondOnVacancyByApplicant.__name__}"
+                app_name=f"{CreateResponseByApplicant.__name__}"
             ).error(f"WITH DATA {respond_dto}")
             await self._tm.rollback()
             raise exc
@@ -127,7 +127,7 @@ class CreateRespondOnVacancyByCompany(RespondOnVacancyUseCase):
         }
 
         logger.bind(
-            app_name=f"{CreateRespondOnVacancyByCompany.__name__}"
+            app_name=f"{CreateResponseByCompany.__name__}"
         ).info(f"DATA {data_notification}")
 
         notifications.send(
@@ -137,13 +137,13 @@ class CreateRespondOnVacancyByCompany(RespondOnVacancyUseCase):
         )
 
 
-class ChangeStatusRespond(RespondOnVacancyUseCase):
+class ChangeStatusResponse(RespondOnVacancyUseCase):
     async def __call__(
             self,
-            respond_dto: ChangeStatusRespondDTO,
+            respond_dto: ChangeStatusResponseDTO,
             notifications: AbstractNotifications
     ) -> StatusRespond:
-        respond = BaseRespondOnVacancyDTODAO(
+        respond = BaseResponseDTODAO(
             user_id=respond_dto.user_id,
             response_id=respond_dto.response_id,
             vacancy=BaseVacancyDTODAO(
@@ -160,18 +160,18 @@ class ChangeStatusRespond(RespondOnVacancyUseCase):
             res = await self._tm.respond_dao.change_status_respond(respond)
             await self._tm.commit()
 
-        except BaseRespondOnVacancyException as exc:
+        except BaseResponseException as exc:
             logger.bind(
-                app_name=f"{ChangeStatusRespond.__name__}"
+                app_name=f"{ChangeStatusResponse.__name__}"
             ).error(f"WITH DATA {respond_dto}")
             await self._tm.rollback()
             raise exc
 
         logger.bind(
-            app_name=f"{ChangeStatusRespond.__name__}"
+            app_name=f"{ChangeStatusResponse.__name__}"
         ).info(f"Send email to {res}")
 
-        if res.vacancy.company is not None:
+        if res.responder_type == ActorType.APPLICANT:
             destination = res.resume.applicant.user.email
             body = (
                 "Вам пришёл отклик от кандидата.\n"
@@ -185,7 +185,7 @@ class ChangeStatusRespond(RespondOnVacancyUseCase):
                 "body": body
             }
 
-        elif res.resume.applicant is not None:
+        elif res.responder_type == ActorType.COMPANY:  # ???? тут что-то вот не так, почему-то данные пустые ????
             destination = res.vacancy.company.user.email
             body = (
                 "Вам пришло сообщение от компании.\n"
@@ -211,7 +211,7 @@ class ChangeStatusRespond(RespondOnVacancyUseCase):
         return respond_dto.status
 
 
-class RespondOnVacancyService:
+class ResponseService:
     def __init__(
             self,
             tm: IBaseTransactionManager,
@@ -220,11 +220,11 @@ class RespondOnVacancyService:
         self._tm = tm
         self._notifications = notifications
 
-    async def create_respond_by_applicant(self, respond_dto: CreateRespondOnVacancyDTO):
-        return await CreateRespondOnVacancyByApplicant(self._tm)(respond_dto, self._notifications)
+    async def create_response_by_applicant(self, respond_dto: CreateResponseDTO):
+        return await CreateResponseByApplicant(self._tm)(respond_dto, self._notifications)
 
-    async def create_respond_by_company(self, respond_dto: CreateRespondOnVacancyDTO):
-        return await CreateRespondOnVacancyByCompany(self._tm)(respond_dto, self._notifications)
+    async def create_response_by_company(self, respond_dto: CreateResponseDTO):
+        return await CreateResponseByCompany(self._tm)(respond_dto, self._notifications)
 
-    async def change_status_respond(self, respond_dto: ChangeStatusRespondDTO) -> StatusRespond:
-        return await ChangeStatusRespond(self._tm)(respond_dto, self._notifications)
+    async def change_status_response(self, respond_dto: ChangeStatusResponseDTO) -> StatusRespond:
+        return await ChangeStatusResponse(self._tm)(respond_dto, self._notifications)

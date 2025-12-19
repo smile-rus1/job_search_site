@@ -1,6 +1,4 @@
 import abc
-from datetime import timedelta
-from typing import Any
 
 
 class IJWTAuth(abc.ABC):

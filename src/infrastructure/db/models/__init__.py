@@ -1,4 +1,5 @@
-from src.infrastructure.db.models.respond import RespondOnVacancyDB, ResponseMessageDB
+from src.infrastructure.db.models.chat import MessageDB, ChatDB
+from src.infrastructure.db.models.respond import ResponsesDB
 from src.infrastructure.db.models.user import UserDB
 from src.infrastructure.db.models.applicant import ApplicantDB
 from src.infrastructure.db.models.company import CompanyDB
@@ -23,8 +24,9 @@ __all__ = [
     "VacancyTypeDB",
     "VacancyDB",
     "LikedVacancy",
-    "RespondOnVacancyDB",
-    "ResponseMessageDB",
+    "ResponsesDB",
+    "MessageDB",
+    "ChatDB"
 ]
 
 

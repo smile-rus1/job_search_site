@@ -64,7 +64,7 @@ class VacancyDB(Base):
     )
     vacancy_type: Mapped["VacancyTypeDB"] = relationship(back_populates="vacancy")
     liked: Mapped["LikedVacancy"] = relationship(back_populates="vacancy")
-    responded: Mapped["RespondOnVacancyDB"] = relationship(  # type: ignore
+    responded: Mapped["ResponsesDB"] = relationship(  # type: ignore
         cascade="all, delete-orphan",
         back_populates="vacancy"
     )

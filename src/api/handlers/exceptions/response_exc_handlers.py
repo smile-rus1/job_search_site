@@ -1,14 +1,14 @@
 from starlette.responses import JSONResponse
 
-from src.exceptions.infrascructure.respond_on_vacancy.respond_on_vacancy import (
-    BaseRespondOnVacancyException,
+from src.exceptions.infrascructure.response.response import (
+    BaseResponseException,
     ResponseAlreadyMaked,
     ResponseNotFoundOnVacancyOrResume,
     ResponsePermissionError
 )
 
 
-def respond_on_vacancy_exception_handler(_, exc: BaseRespondOnVacancyException):
+def response_exception_handler(_, exc: BaseResponseException):
     match exc:
         case ResponseAlreadyMaked():
             return JSONResponse(status_code=400, content={"message": exc.message()})
@@ -19,5 +19,5 @@ def respond_on_vacancy_exception_handler(_, exc: BaseRespondOnVacancyException):
         case ResponsePermissionError():
             return JSONResponse(status_code=400, content={"message": exc.message()})
 
-        case BaseRespondOnVacancyException():
+        case BaseResponseException():
             return JSONResponse(status_code=500, content={"message": "Sorry, service not available, please try later"})
