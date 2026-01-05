@@ -82,3 +82,8 @@ class StatusRespond(enum.Enum):
 class ActorType(enum.Enum):
     APPLICANT = "APPLICANT"
     COMPANY = "COMPANY"
+
+
+class ChatType(enum.Enum):
+    SUPPORT = "SUPPORT"
+    RESPONSE = "RESPONSE"

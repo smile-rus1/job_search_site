@@ -30,5 +30,9 @@ def vacancy_service_provider():
     raise NotImplementedError
 
 
-def respond_vacancy_provider():
+def response_service_provider():
+    raise NotImplementedError
+
+
+def chat_service_provider():
     raise NotImplementedError

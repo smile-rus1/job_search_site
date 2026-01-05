@@ -2,6 +2,7 @@ from abc import ABC
 
 from loguru import logger
 
+from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.infrascructure.user.user import UserNotFoundByEmail
 from src.dto.services.user.user import UserDTO, UpdateUserDTO
 from src.exceptions.infrascructure.user.user import UserAlreadyExist
@@ -43,7 +44,7 @@ class UpdateUser(UserUseCase):
         if user_dto.password is not None:
             hashed_password = self._hasher.hash(user_dto.password)
             user_dto.password = hashed_password
-        user = UpdateUserDTODAO(**user_dto.__dict__)
+        user = BaseUserDTODAO(**user_dto.__dict__)
 
         try:
             await self._tm.user_dao.update_user(user)

@@ -1,17 +1,22 @@
 from fastapi import Depends
 
-from src.api.providers.abstract.common import tm_provider, hasher_provider, fm_provider, notification_email_provider, \
+from src.api.providers.abstract.common import (
+    tm_provider,
+    hasher_provider,
+    fm_provider,
+    notification_email_provider,
     redis_db_provider
-from src.infrastructure.notifications.email import EmailNotifications
+)
 from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.infrastructure.hasher import Hasher
 from src.services.applicant.applicant import ApplicantService
+from src.services.chat.chat import ChatService
 from src.services.company.company import CompanyService
 from src.services.files_work.files_manager import FilesManager
 from src.services.files_work.files_work import FilesWorkService
-from src.services.respond_on_vacancy.respond_on_vacancy import RespondOnVacancyService
+from src.services.response.response import ResponseService
 from src.services.resume.resume import ResumeService
 from src.services.user.auth import AuthService
 from src.services.user.user import UserService
@@ -76,8 +81,15 @@ def vacancy_service_getter(
     return VacancyService(tm=tm)
 
 
-def respond_vacancy_getter(
+def response_service_getter(
         tm: IBaseTransactionManager = Depends(tm_provider),
         notifications: AbstractNotifications = Depends(notification_email_provider),
 ):
-    return RespondOnVacancyService(tm=tm, notifications=notifications)
+    return ResponseService(tm=tm, notifications=notifications)
+
+
+def chat_service_getter(
+        tm: IBaseTransactionManager = Depends(tm_provider),
+        notifications: AbstractNotifications = Depends(notification_email_provider),
+):
+    return ChatService(tm=tm, notifications=notifications)

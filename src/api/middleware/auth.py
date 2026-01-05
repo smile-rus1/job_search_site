@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import WebSocket
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -39,3 +39,21 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             )
         response = await call_next(request)
         return response
+
+
+async def get_auth_websocket(ws: WebSocket):
+    jwt_auth = await get_jwt_token_auth(request=ws)
+    access_token_data = await jwt_auth.read_token(config.auth.access_token_name)
+
+    if access_token_data is None:
+        return AnonymousUser()
+
+    return ActiveUser(
+        user_id=access_token_data.get("user_id"),
+        first_name=access_token_data.get("first_name"),
+        last_name=access_token_data.get("last_name"),
+        email=access_token_data.get("email"),
+        is_admin=access_token_data.get("is_admin"),
+        is_superuser=access_token_data.get("is_superuser"),
+        type=access_token_data.get("type")
+    )

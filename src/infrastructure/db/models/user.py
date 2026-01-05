@@ -37,6 +37,10 @@ class UserDB(Base):
         passive_deletes=True
     )
 
+    messages: Mapped[list["MessageDB"]] = relationship(  # type: ignore
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
     # для того чтобы понимать тип наследника
     __mapper_args__ = {
         "polymorphic_identity": "user",

@@ -1,8 +1,9 @@
 from typing import Protocol
 
 from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
+from src.interfaces.infrastructure.dao.chat_dao import IChatDAO
 from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
-from src.interfaces.infrastructure.dao.repond_on_vacancy_dao import IRespondOnVacancyDAO
+from src.interfaces.infrastructure.dao.response_dao import IResponsesDAO
 from src.interfaces.infrastructure.dao.resume_dao import IResumeDAO
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
 from src.interfaces.infrastructure.dao.vacancy_dao import IVacancyDAO
@@ -16,7 +17,8 @@ class IBaseTransactionManager(Protocol):
     resume_dao: IResumeDAO
     work_experience_dao: IWorkExperienceDAO
     vacancy_dao: IVacancyDAO
-    respond_dao: IRespondOnVacancyDAO
+    respond_dao: IResponsesDAO
+    chat_dao: IChatDAO
 
     async def commit(self):
         raise NotImplementedError
