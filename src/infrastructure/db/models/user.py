@@ -41,6 +41,12 @@ class UserDB(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
 
+    balance: Mapped["BalanceDB"] = relationship(  # type: ignore
+        uselist=False,
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
     # для того чтобы понимать тип наследника
     __mapper_args__ = {
         "polymorphic_identity": "user",

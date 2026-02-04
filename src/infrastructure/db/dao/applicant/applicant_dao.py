@@ -10,7 +10,7 @@ from src.dto.db.user.user import BaseUserDTODAO
 
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
-from src.infrastructure.db.models import ApplicantDB, UserDB
+from src.infrastructure.db.models import ApplicantDB, UserDB, BalanceDB
 from src.core.enums import TypeUser
 from src.interfaces.infrastructure.dao.applicant_dao import IApplicantDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
@@ -65,6 +65,21 @@ class ApplicantDAO(SqlAlchemyDAO, IApplicantDAO):
             raise self._error_parser(applicant, exc)
 
         applicant_id = result.scalar_one()
+
+        balance_sql = (
+            insert(BalanceDB)
+            .values(
+                user_id=user_id
+            )
+        )
+        try:
+            await self._session.execute(balance_sql)
+
+        except IntegrityError as exc:
+            logger.bind(
+                app_name=f"{ApplicantDAO.__name__} in {self.create_applicant.__name__}"
+            ).error(f"WITH DATA {applicant}\nMESSAGE: {exc}")
+            raise self._error_parser(applicant, exc)
 
         return BaseApplicantDTODAO(
             user=BaseUserDTODAO(

@@ -87,3 +87,16 @@ class ActorType(enum.Enum):
 class ChatType(enum.Enum):
     SUPPORT = "SUPPORT"
     RESPONSE = "RESPONSE"
+
+
+class TransactionType(enum.Enum):
+    REPLENISHMENT = "REPLENISHMENT"
+    REFUND = "REFUND"
+    PURCHASE = "PURCHASE"
+
+
+class TransactionStatus(enum.Enum):
+    PENDING = "PENDING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    CANCELED = "CANCELED"

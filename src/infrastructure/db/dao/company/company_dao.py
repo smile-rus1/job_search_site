@@ -13,7 +13,7 @@ from src.dto.db.company.company import (
 from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
 from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByID
-from src.infrastructure.db.models import CompanyDB, UserDB
+from src.infrastructure.db.models import CompanyDB, UserDB, BalanceDB
 from src.core.enums import TypeUser
 from src.interfaces.infrastructure.dao.company_dao import ICompanyDAO
 from src.interfaces.infrastructure.sqlalchemy_dao import SqlAlchemyDAO
@@ -70,6 +70,21 @@ class CompanyDAO(SqlAlchemyDAO, ICompanyDAO):
             raise self._error_parser(company, exc)
 
         company_id = result.scalar_one()
+
+        balance_sql = (
+            insert(BalanceDB)
+            .values(
+                user_id=user_id
+            )
+        )
+        try:
+            await self._session.execute(balance_sql)
+
+        except IntegrityError as exc:
+            logger.bind(
+                app_name=f"{CompanyDAO.__name__} in {self.create_company.__name__}"
+            ).error(f"WITH DATA {company}\nMESSAGE: {exc}")
+            raise self._error_parser(company, exc)
 
         return BaseCompanyDTODAO(
             user=BaseUserDTODAO(

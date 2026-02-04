@@ -36,3 +36,7 @@ def response_service_provider():
 
 def chat_service_provider():
     raise NotImplementedError
+
+
+def balance_service_provider():
+    raise NotImplementedError

@@ -5,6 +5,9 @@ class IUserDAO:
     async def get_user_by_email(self, email: str) -> BaseUserDTODAO:
         raise NotImplementedError
 
+    async def get_user_by_id(self, user_id: int) -> BaseUserDTODAO:
+        raise NotImplementedError
+
     async def update_user(self, user: BaseUserDTODAO) -> None:
         raise NotImplementedError
 

@@ -16,5 +16,6 @@ def build_tm(
         work_experience=dao.WorkExperienceDAO,
         vacancy_dao=dao.VacancyDAO,
         respond_dao=dao.ResponseDAO,
-        chat_dao=dao.ChatDAO
+        chat_dao=dao.ChatDAO,
+        balance_dao=dao.BalanceDAO
     )

@@ -4,7 +4,8 @@ from sqlalchemy.exc import IntegrityError
 
 from src.dto.db.user.user import BaseUserDTODAO
 from src.exceptions.base import BaseExceptions
-from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail, BaseUserException
+from src.exceptions.infrascructure.user.user import UserAlreadyExist, UserNotFoundByEmail, BaseUserException, \
+    UserNotFoundByID
 
 from src.infrastructure.db.models.user import UserDB
 from src.interfaces.infrastructure.dao.user_dao import IUserDAO
@@ -21,6 +22,28 @@ class UserDAO(SqlAlchemyDAO, IUserDAO):
                 app_name=f"{UserDAO.__name__} in {self.get_user_by_email.__name__}"
             ).error(f"NOT FOUND BY EMAIL: {email}")
             raise UserNotFoundByEmail(email)
+
+        return BaseUserDTODAO(
+            user_id=result.user_id,
+            email=result.email,
+            password=result.password,
+            first_name=result.first_name,
+            last_name=result.last_name,
+            updated_at=result.updated_at,
+            is_admin=result.is_admin,
+            is_superuser=result.is_superuser,
+            type=result.type
+        )
+
+    async def get_user_by_id(self, user_id: int) -> BaseUserDTODAO:
+        sql = select(UserDB).where(UserDB.user_id == user_id)
+        result = (await self._session.execute(sql)).scalar()
+
+        if not result:
+            logger.bind(
+                app_name=f"{UserDAO.__name__} in {self.get_user_by_email.__name__}"
+            ).error(f"NOT FOUND BY ID: {user_id}")
+            raise UserNotFoundByID(user_id)
 
         return BaseUserDTODAO(
             user_id=result.user_id,

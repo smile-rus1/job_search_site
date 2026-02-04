@@ -10,13 +10,15 @@ from src.api.providers import services
 
 
 def bind_common(app: FastAPI, config: Config):
-    app.dependency_overrides[abstract.common.session_provider] = common_provide.db_session(config)
-    app.dependency_overrides[abstract.common.redis_pool_provider] = common_provide.redis_pool_getter(config)
-    app.dependency_overrides[abstract.common.hasher_provider] = common_provide.hasher_getter
-    app.dependency_overrides[abstract.common.tm_provider] = common_provide.tm_getter
-    app.dependency_overrides[abstract.common.fm_provider] = common_provide.fm_getter(config)
-    app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter
-    app.dependency_overrides[abstract.common.notification_email_provider] = common_provide.notification_email_getter
+    app.dependency_overrides[abstract.common.session_provider] = common_provide.db_session(config)  # type: ignore
+    app.dependency_overrides[abstract.common.redis_pool_provider] = common_provide.redis_pool_getter(config)  # type: ignore
+    app.dependency_overrides[abstract.common.hasher_provider] = common_provide.hasher_getter  # type: ignore
+    app.dependency_overrides[abstract.common.tm_provider] = common_provide.tm_getter  # type: ignore
+    app.dependency_overrides[abstract.common.fm_provider] = common_provide.fm_getter(config)  # type: ignore
+    app.dependency_overrides[abstract.common.redis_db_provider] = common_provide.redis_db_getter  # type: ignore
+    app.dependency_overrides[abstract.common.notification_email_provider] = common_provide.notification_email_getter  # type: ignore
+    app.dependency_overrides[abstract.common.client_converter_provider] = common_provide.client_converter_getter(config)  # type: ignore
+    app.dependency_overrides[abstract.common.currency_converter_provider] = common_provide.currency_converter_getter  # type: ignore
 
 
 # def bind_auth(app: FastAPI):
@@ -34,6 +36,7 @@ def bind_services(app: FastAPI):
     app.dependency_overrides[abstract.services.vacancy_service_provider] = services.vacancy_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.response_service_provider] = services.response_service_getter  # type: ignore
     app.dependency_overrides[abstract.services.chat_service_provider] = services.chat_service_getter  # type: ignore
+    app.dependency_overrides[abstract.services.balance_service_provider] = services.balance_service_getter  # type: ignore
 
 
 def bind_middlewares(app: FastAPI):

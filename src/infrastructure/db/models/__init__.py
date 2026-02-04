@@ -1,3 +1,4 @@
+from src.infrastructure.db.models.balance import BalanceDB, BalanceTransactionDB
 from src.infrastructure.db.models.chat import MessageDB, ChatDB
 from src.infrastructure.db.models.respond import ResponsesDB
 from src.infrastructure.db.models.user import UserDB
@@ -26,8 +27,7 @@ __all__ = [
     "LikedVacancy",
     "ResponsesDB",
     "MessageDB",
-    "ChatDB"
+    "ChatDB",
+    "BalanceDB",
+    "BalanceTransactionDB",
 ]
-
-
-

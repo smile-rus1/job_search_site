@@ -29,6 +29,10 @@ class EmailNotifications(AbstractNotifications):
             from src.infrastructure.celery.tasks import send_message_about_change_status
             send_message_about_change_status(destination, subject, body)
 
+        elif template == "send_message_replenishment_balance":
+            from src.infrastructure.celery.tasks import send_message_replenishment_balance
+            send_message_replenishment_balance(destination, subject, body)
+
     def send_(self, destination: str, subject: str, body: str):
         self.msg = EmailMessage()
         self.msg["From"] = config.mail.smtp_user

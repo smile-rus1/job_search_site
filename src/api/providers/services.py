@@ -5,13 +5,15 @@ from src.api.providers.abstract.common import (
     hasher_provider,
     fm_provider,
     notification_email_provider,
-    redis_db_provider
+    redis_db_provider, currency_converter_provider
 )
+from src.interfaces.infrastructure.currency_converter import ICurrencyConverter
 from src.interfaces.infrastructure.notifications import AbstractNotifications
 from src.interfaces.infrastructure.redis_db import IRedisDB
 from src.interfaces.services.transaction_manager import IBaseTransactionManager
 from src.infrastructure.hasher import Hasher
 from src.services.applicant.applicant import ApplicantService
+from src.services.balance.balance import BalanceService
 from src.services.chat.chat import ChatService
 from src.services.company.company import CompanyService
 from src.services.files_work.files_manager import FilesManager
@@ -93,3 +95,11 @@ def chat_service_getter(
         notifications: AbstractNotifications = Depends(notification_email_provider),
 ):
     return ChatService(tm=tm, notifications=notifications)
+
+
+def balance_service_getter(
+        tm: IBaseTransactionManager = Depends(tm_provider),
+        notifications: AbstractNotifications = Depends(notification_email_provider),
+        converter: ICurrencyConverter = Depends(currency_converter_provider)
+):
+    return BalanceService(tm=tm, notifications=notifications, converter=converter)

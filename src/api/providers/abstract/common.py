@@ -30,3 +30,11 @@ def fm_provider():
 
 def notification_email_provider():
     raise NotImplementedError
+
+
+def client_converter_provider():
+    raise NotImplementedError
+
+
+def currency_converter_provider():
+    raise NotImplementedError

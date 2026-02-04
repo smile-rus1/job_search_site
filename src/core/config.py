@@ -2,9 +2,11 @@ from dataclasses import dataclass
 
 from src.api.auth_config import AuthConfig
 from src.api.web_config import APIConfig
+from src.infrastructure.currency_converter.config import CurrencyConverterConfig
 from src.infrastructure.db_config import DBConfig
 from src.infrastructure.files_work.files_config import FilesWorkConfig
 from src.infrastructure.notifications.config import NotificationConfig
+from src.infrastructure.payments.payments_config import PaymentsConfig
 from src.infrastructure.redis_db.config import RedisConfig
 
 
@@ -16,3 +18,5 @@ class Config:
     redis: RedisConfig
     mail: NotificationConfig
     files_work: FilesWorkConfig
+    payments: PaymentsConfig
+    currency_converter: CurrencyConverterConfig

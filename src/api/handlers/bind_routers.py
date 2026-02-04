@@ -10,7 +10,9 @@ from src.api.handlers import (
     resume_router,
     work_experience_router,
     vacancy_router,
-    response_router
+    response_router,
+    stripe_router,
+    balance_router
 )
 
 from src.api.handlers.exceptions import (
@@ -23,7 +25,7 @@ from src.api.handlers.exceptions import (
     resume_exception_handler,
     work_experience_exception_handler,
     vacancy_exception_handler,
-    response_exception_handler,
+    response_exception_handler, balance_exception_handler,
 )
 
 from src.api.web_config import APIConfig
@@ -34,6 +36,7 @@ from src.exceptions.infrascructure import (
     BaseResumeException,
     BaseWorkExperiencesException
 )
+from src.exceptions.infrascructure.balance.balance import BaseBalanceException
 from src.exceptions.infrascructure.company.company import BaseCompanyException
 from src.exceptions.infrascructure.response.response import BaseResponseException
 from src.exceptions.infrascructure.vacancy.vacancy import BaseVacancyException
@@ -55,6 +58,7 @@ def bind_exceptions_handlers(app: FastAPI):
     app.add_exception_handler(BaseWorkExperiencesException, work_experience_exception_handler)  # type: ignore
     app.add_exception_handler(BaseVacancyException, vacancy_exception_handler)  # type: ignore
     app.add_exception_handler(BaseResponseException, response_exception_handler)  # type: ignore
+    app.add_exception_handler(BaseBalanceException, balance_exception_handler)  # type: ignore
 
 
 def bind_routers():
@@ -67,6 +71,8 @@ def bind_routers():
     api_routers.include_router(work_experience_router)
     api_routers.include_router(vacancy_router)
     api_routers.include_router(response_router)
+    api_routers.include_router(stripe_router)
+    api_routers.include_router(balance_router)
     api_routers.include_router(chat_ws)
 
     return api_routers

@@ -1,4 +1,6 @@
 from src.api.handlers.applicant.applicant import applicant_router
+from src.api.handlers.balance.balance import balance_router
+from src.api.handlers.balance.payments.stripe.stripe import stripe_router
 from src.api.handlers.company.company import company_router
 from src.api.handlers.resume.resume import resume_router
 from src.api.handlers.user import auth_router, user_router
@@ -15,6 +17,8 @@ __all__ = [
     "resume_router",
     "work_experience_router",
     "vacancy_router",
-    "response_router"
+    "response_router",
+    "stripe_router",
+    "balance_router",
 ]
 

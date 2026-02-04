@@ -5,9 +5,11 @@ from dotenv import load_dotenv
 from src.api.auth_config import AuthConfig
 from src.core.config import Config
 from src.api.web_config import APIConfig
+from src.infrastructure.currency_converter.config import CurrencyConverterConfig
 from src.infrastructure.db_config import DBConfig
 from src.infrastructure.files_work.files_config import FilesWorkConfig
 from src.infrastructure.notifications.config import NotificationConfig
+from src.infrastructure.payments.payments_config import PaymentsConfig, StripePayment
 from src.infrastructure.redis_db.config import RedisConfig
 
 
@@ -51,6 +53,17 @@ def config_loader() -> Config:
         files_work=FilesWorkConfig(
             url_save_file=os.getenv("URL_SAVE_FILE"),
             chunk_size=int(os.getenv("CHUNK_SIZE"))
+        ),
+        payments=PaymentsConfig(
+            stripe_payment=StripePayment(
+                publish_key=os.getenv("STRIPE_PUBLISH_KEY"),
+                secret_key=os.getenv("STRIPE_SECRET_KEY"),
+                webhook_secret=os.getenv("STRIPE_WEBHOOK"),
+            )
+        ),
+        currency_converter=CurrencyConverterConfig(
+            exchange_rate_key=os.getenv("EXCHANGE_RATE_KEY"),
+            base_url=os.getenv("EXCHANGE_RATE_BASE_URL")
         )
     )
 

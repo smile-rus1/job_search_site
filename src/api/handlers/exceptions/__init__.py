@@ -1,3 +1,4 @@
+from src.api.handlers.exceptions.balance_exc_handlers import balance_exception_handler
 from src.api.handlers.exceptions.common_exc_handlers import (
     auth_exception_handler,
     validation_exception_handler,
@@ -22,6 +23,7 @@ __all__ = [
     "resume_exception_handler",
     "work_experience_exception_handler",
     "vacancy_exception_handler",
-    "response_exception_handler"
+    "response_exception_handler",
+    "balance_exception_handler"
 ]
 

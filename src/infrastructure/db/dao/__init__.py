@@ -1,4 +1,5 @@
 from src.infrastructure.db.dao.applicant.applicant_dao import ApplicantDAO
+from src.infrastructure.db.dao.balance.balance import BalanceDAO
 from src.infrastructure.db.dao.chat.chat_dao import ChatDAO
 from src.infrastructure.db.dao.company.company_dao import CompanyDAO
 from src.infrastructure.db.dao.response.response import ResponseDAO
@@ -16,5 +17,6 @@ __all__ = [
     "WorkExperienceDAO",
     "VacancyDAO",
     "ResponseDAO",
-    "ChatDAO"
+    "ChatDAO",
+    "BalanceDAO"
 ]

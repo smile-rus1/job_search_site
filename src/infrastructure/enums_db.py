@@ -8,6 +8,8 @@ from src.core.enums import (
     StatusRespond,
     ActorType,
     ChatType,
+    TransactionType,
+    TransactionStatus,
 )
 
 TypeUserEnumDB = Enum(TypeUser, name="typeuser", create_type=False)
@@ -18,3 +20,5 @@ VacancyDurationEnumDB = Enum(VacancyDuration, name="vacancyduration", create_typ
 StatusRespondEnumDB = Enum(StatusRespond, name="status_of_response", create_type=False)
 ActorTypeEnumDB = Enum(ActorType, name="actor_type", create_type=False)
 ChatTypeEnumDB = Enum(ChatType, name="chat_type", create_type=False)
+TransactionTypeEnumDB = Enum(TransactionType, name="transaction_type", create_type=False)
+TransactionStatusEnumDB = Enum(TransactionStatus, name="transaction_status", create_type=False)

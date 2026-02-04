@@ -15,3 +15,8 @@ def send_respond_notification(destination: str, subject: str, body):
 @celery_app.task(name="email.send_message_about_change_status")
 def send_message_about_change_status(destination: str, subject: str, body):
     EmailNotifications().send_(destination, subject, body)
+
+
+@celery_app.task(name="email.send_message_replenishment_balance")
+def send_message_replenishment_balance(destination: str, subject: str, body):
+    EmailNotifications().send_(destination, subject, body)

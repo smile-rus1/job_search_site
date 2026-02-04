@@ -14,3 +14,7 @@ def create_applicant_resume_link(slug: str | int):
 
 def create_company_vacancy_link(slug: str | int):
     return f"{config.api.base_url}{config.api.api_v1_str}/vacancies/{slug}"
+
+
+def create_profile_link():
+    return f"{config.api.base_url}{config.api.api_v1_str}/user/profile"

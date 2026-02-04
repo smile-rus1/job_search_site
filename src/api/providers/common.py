@@ -4,11 +4,14 @@ from fastapi import Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.providers.abstract.common import session_provider, redis_pool_provider, redis_db_provider
+from src.api.providers.abstract.common import session_provider, redis_pool_provider, redis_db_provider, \
+    client_converter_provider
 from src.api.providers.build_files_manager import build_fm
 from src.core.config import Config
 from src.infrastructure.connections import get_db_connection, get_redis_connections
 from src.api.providers.build_transaction_manager import build_tm
+from src.infrastructure.currency_converter.client import CurrencyConverterClient, get_currency_converter_client
+from src.infrastructure.currency_converter.converter import CurrencyConverter
 from src.infrastructure.hasher import Hasher
 from src.infrastructure.notifications.email import EmailNotifications
 from src.infrastructure.redis_db.redis_db import RedisDB
@@ -55,6 +58,7 @@ def fm_getter(config: Config):
             base_dir=Path(config.files_work.url_save_file),
             chunk_size=config.files_work.chunk_size
         )
+
     return _build_fm
 
 
@@ -64,3 +68,23 @@ def hasher_getter() -> Hasher:
 
 def notification_email_getter() -> AbstractNotifications:
     return EmailNotifications()
+
+
+def client_converter_getter(config: Config):
+    def _get_client():
+        return get_currency_converter_client(
+            config.currency_converter.base_url,
+            config.currency_converter.exchange_rate_key
+        )
+    return _get_client
+
+
+def currency_converter_getter(
+        redis_db: IRedisDB = Depends(redis_db_provider),
+        client: CurrencyConverterClient = Depends(client_converter_provider)
+):
+    return CurrencyConverter(
+        redis=redis_db,
+        client=client
+    )
+
